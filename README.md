@@ -1,2 +1,2 @@
 # BAIFA_web_crawling
-BAUFA conducts web crawling from iSunCloud in frequence
+BAUFA conducts web crawling from iSunCloud in frequency
