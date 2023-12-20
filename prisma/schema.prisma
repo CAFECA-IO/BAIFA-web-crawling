@@ -32,8 +32,6 @@ model Transaction {
   v                   String
   r                   String
   s                   String
-  // 添加關聯到 Block
-  block               Block     @relation(fields: [blockNumber], references: [number])
 }
 
 model Block {
@@ -58,8 +56,6 @@ model Block {
   totalDifficulty  String
   transactionsRoot String
   uncles           String
-  // 添加關聯到 Transaction
-  transactions     Transaction[]
 }
 
 model TransactionReceipt {
