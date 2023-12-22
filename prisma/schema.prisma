@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../generated/client"
 }
 
 datasource db {
@@ -56,6 +55,9 @@ model Block {
   totalDifficulty  String
   transactionsRoot String
   uncles           String
+  transactionCount Int
+  transactionFinished        Boolean  @default(false)
+  transactionReceiptFinished Boolean  @default(false)
 }
 
 model TransactionReceipt {
