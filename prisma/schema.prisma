@@ -12,22 +12,22 @@ datasource db {
 
 model Transaction {
   id                  Int    @id @default(autoincrement())
-  blockHash           String
-  blockNumber         Int
+  block_hash           String
+  block_number         Int
   from                String
   gas                 String
-  gasPrice            String
-  maxFeePerGas        String
-  maxPriorityFeePerGas String
+  gas_price            String
+  max_fee_per_gas        String
+  max_priority_fee_per_gas String
   hash                String    @unique
   input               String
   nonce               String
   to                  String
-  transactionIndex    String
+  transaction_index    String
   value               String
   type                String
-  accessList          String
-  chainId             String
+  access_list          String
+  chain_id             String
   v                   String
   r                   String
   s                   String
@@ -35,45 +35,45 @@ model Transaction {
 
 model Block {
   id               Int    @id @default(autoincrement())
-  baseFeePerGas    String
+  base_fee_per_gas    String
   difficulty       String
-  extraData        String
-  gasLimit         String
-  gasUsed          String
+  extra_data        String
+  gas_limit         String
+  gas_used          String
   hash             String    @unique
-  logsBloom        String
+  logs_bloom        String
   miner            String
-  mixHash          String
+  mix_hash          String
   nonce            String
   number           Int    @unique
-  parentHash       String
-  receiptsRoot     String
-  sha3Uncles       String
+  parent_hash       String
+  receipts_root     String
+  sha3_uncles       String
   size             String
-  stateRoot        String
+  state_root        String
   timestamp        String
-  totalDifficulty  String
-  transactionsRoot String
+  total_difficulty  String
+  transactions_root String
   uncles           String
-  transactionCount Int
-  transactionFinished        Boolean  @default(false)
-  transactionReceiptFinished Boolean  @default(false)
+  transaction_count Int
+  transaction_finished        Boolean  @default(false)
+  transaction_receipt_finished Boolean  @default(false)
 }
 
 model TransactionReceipt {
   id                  Int      @id @default(autoincrement())
-  blockHash           String
-  blockNumber         Int
-  contractAddress     String
-  cumulativeGasUsed   String
-  effectiveGasPrice   String
+  block_hash           String
+  block_number         Int
+  contract_address     String
+  cumulative_gas_used   String
+  effective_gas_price   String
   from                String
-  gasUsed             String
+  gas_used             String
   logs                String
-  logsBloom           String
+  logs_bloom           String
   status              String
   to                  String
-  transactionHash     String    @unique
-  transactionIndex    String
+  transaction_hash     String    @unique
+  transaction_index    String
   type                String
 }

@@ -10,6 +10,8 @@ class Crawler {
   private web3: Web3;
   private logger: Logger;
   constructor() {
+    // Deprecated: check crawler init (20231225 - Gibbs)
+    // eslint-disable-next-line no-console
     console.log("Crawler constructor");
     // Connect to the iSunCoin node
     this.web3 = new Web3("https://isuncoin.baifa.io/");
@@ -21,9 +23,13 @@ class Crawler {
   }
 
   async go() {
+    // Deprecated: check crawler start (20231225 - Gibbs)
+    // eslint-disable-next-line no-console
     console.log("Crawler go");
     await crawlBlock(this.web3);
     const dataCount = await prisma.block.count();
+    // Deprecated: check crawl block end (20231225 - Gibbs)
+    // eslint-disable-next-line no-console
     console.log("crawl block end, dataCount:", dataCount);
     /*
     this.logger.log(`Latest Block Number: ${latestBlockNumber}`);
