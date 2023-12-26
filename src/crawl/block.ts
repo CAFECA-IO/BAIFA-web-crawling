@@ -85,6 +85,10 @@ async function saveBlock(web3: any, i: number) {
     transaction_finished: false,
     transaction_receipt_finished: false,
   };
+  // use prisma client to store block
+  await prisma.block.create({
+    data,
+  });
 }
 
 async function checkBlockExisting(blockNumber: number) {
