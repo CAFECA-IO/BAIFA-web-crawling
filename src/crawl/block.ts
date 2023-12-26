@@ -6,9 +6,9 @@ const prisma = new PrismaClient();
 async function crawlBlock(web3: any) {
   // Get the latest block number
 
-  // const latestBlockNumber = Number(await this.web3.eth.getBlockNumber());
+  // const latestBlockNumber = Number(await web3.eth.getBlockNumber());
   // test
-  const latestBlockNumber = Number(31726);
+  const latestBlockNumber = Number(79829);
   // Deprecated: print latestBlockNumber (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("latestBlockNumber:", latestBlockNumber);
@@ -22,8 +22,8 @@ async function crawlBlock(web3: any) {
   console.log("blockNumbers:", blockNumbers);
 
   //test
-  const bigEnd = 31720;
-  const smallEnd = 31715;
+  const bigEnd = 79820;
+  const smallEnd = 79815;
   // const bigEnd = blockNumbers[0]?.number || -1;
   // const smallEnd = blockNumbers[blockNumbers.length - 1]?.number || -1;
   // Deprecated: print bigEnd and smallEnd (20231225 - Gibbs)
@@ -33,19 +33,26 @@ async function crawlBlock(web3: any) {
   // get block from bigEnd to latest block
   if (latestBlockNumber > bigEnd) {
     for (let i = bigEnd + 1; i <= latestBlockNumber; i++) {
-      // console.log('biggerToLatest:', i);
-      await saveBlock(web3, i);
-      await crawlTransactionAndReceipt(web3, i);
+      // check if block exist
+      const existingBlock = await checkBlockExisting(i);
+      if (!existingBlock) {
+        await saveBlock(web3, i);
+        await crawlTransactionAndReceipt(web3, i);
+      }
     }
   }
   // get block from smallEnd to block 0
   if (smallEnd > 0) {
-    for (let i = smallEnd - 1; i >= 31710; i--) {
+    for (let i = smallEnd - 1; i >= 79810; i--) {
       // Deprecated: print every block number from smallEnd to zero (20231225 - Gibbs)
       // eslint-disable-next-line no-console
       console.log("smallerToZero:", i);
-      await saveBlock(web3, i);
-      await crawlTransactionAndReceipt(web3, i);
+      // check if block exist
+      const existingBlock = await checkBlockExisting(i);
+      if (!existingBlock) {
+        await saveBlock(web3, i);
+        await crawlTransactionAndReceipt(web3, i);
+      }
     }
   }
 }
@@ -78,9 +85,13 @@ async function saveBlock(web3: any, i: number) {
     transaction_finished: false,
     transaction_receipt_finished: false,
   };
-  await prisma.block.create({
-    data,
+}
+
+async function checkBlockExisting(blockNumber: number) {
+  const existingBlock = await prisma.block.findUnique({
+    where: { number: blockNumber },
   });
+  return existingBlock;
 }
 
 export { crawlBlock };
