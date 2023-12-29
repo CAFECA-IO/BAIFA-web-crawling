@@ -10,6 +10,11 @@ datasource dbSqlite {
   url = env("DATABASE_URL")
 }
 
+datasource dbPostgresql {
+  provider = "postgresql"
+  url = env("SECOND_DATABASE_URL")
+}
+
 model Transaction {
   id                  Int    @id @default(autoincrement())
   block_hash           String
@@ -31,6 +36,7 @@ model Transaction {
   v                   String
   r                   String
   s                   String
+  @@datasource(dbSqlite)
 }
 
 model Block {
@@ -58,6 +64,7 @@ model Block {
   transaction_count Int
   transaction_finished        Boolean  @default(false)
   transaction_receipt_finished Boolean  @default(false)
+  @@datasource(dbSqlite)
 }
 
 model TransactionReceipt {
@@ -76,4 +83,176 @@ model TransactionReceipt {
   transaction_hash     String    @unique
   transaction_index    String
   type                String
+  @@datasource(dbSqlite)
+}
+
+model Contracts {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  contract_address    String PublicTags @relation(fields: [contract_address], references: [target])
+  source_code         String
+  creator_address     String
+  created_timestamp   DateTime
+  @@datasource(dbPostgresql)            
+}
+
+model PublicTags {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  target              String
+  target_type         String
+  contracts Contracts[]
+  addresses Addresses[]
+  @@datasource(dbPostgresql)    
+}
+
+model Evidences {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  evidence_address    String
+  state               String
+  content             String
+  creator_address     String
+  @@datasource(dbPostgresql)    
+}
+
+model Chains {
+  id                  Int      @id @default(autoincrement())
+  chain_name          String
+  chain_icon          String
+  contracts Contracts[]
+  evidences Evidences[]
+  transactions Transactions[]
+  black_lists BlackLists[]
+  red_flags RedFlags[]
+  blocks Blocks[]
+  token_balances TokenBalances[]
+  token_transfers TokenTransfers[]  
+  currencies Currencies[]  
+  addresses Addresses[]
+  @@datasource(dbPostgresql)    
+}
+
+model Transactions {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  hash                String
+  type                String
+  status              String
+  block_id            Int Blocks @relation(fields: [block_id], references: [id])
+  from_address        String
+  to_address          String
+  evidence_id         Int
+  value               Int
+  fee                 Int
+  related_addresses   String[]   
+  @@datasource(dbPostgresql)    
+}
+
+model BlackLists {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  address_id          Int Addresses @related(fields: [address_id], references: [id])
+  public_tag          String           
+  @@datasource(dbPostgresql)    
+}
+
+model ReviewDatas {
+  id                  Int      @id @default(autoincrement())
+  target              String
+  target_type         String
+  created_timestamp   DateTime
+  content             String
+  stars               Int
+  addresses Addresses[]
+  @@datasource(dbPostgresql)    
+}
+
+model RedFlags {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  red_flag_type       String
+  total_amount        Int
+  symbol              String
+  related_addresses   String[]
+  related_transactions String[]           
+  @@datasource(dbPostgresql)    
+}
+
+model Blocks {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  miner               String
+  reward              Int
+  size                Int
+  symbol              String
+  transaction_count   Int
+  parent_hash         String
+  burnt_fees          Int
+  transactions Transactions[]        
+  @@datasource(dbPostgresql)    
+}
+
+model TokenBalances {
+  id                  Int      @id @default(autoincrement())
+  address             String
+  value               Int
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  currency_id         Int Currencies @relation(fields: [currency_id], references: [id])
+  @@datasource(dbPostgresql)    
+}
+
+model TokenTransfers {
+  id                  Int      @id @default(autoincrement())
+  from_address        String
+  to_address          String
+  value               Int
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  currency_id         Int Currencies @relation(fields: [currency_id], references: [id])
+  transaction_hash    String
+  index               Int       
+  @@datasource(dbPostgresql)    
+}
+
+model Currencies {
+  id                  Int      @id @default(autoincrement())
+  risk_level          String
+  price               Int
+  volume_in_24h       Int
+  symbol              String
+  total_amount        Int
+  holder_count        Int
+  total_transfers     Int
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  token_balances TokenBalances[] 
+  token_transfers TokenTransfers[]          
+  @@datasource(dbPostgresql)    
+}
+
+model Addresses {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int Chains @relation(fields: [chain_id], references: [id])
+  created_timestamp   DateTime
+  address             String 
+  type                String
+  score               Int
+  latest_active_time  DateTime
+  review_datas: ReviewDatas @relation(name: "ReviewDatas", fields: [address], references: [target])
+  public_tags: PublicTags @relation(name: "PublicTags", fields: [address], references: [target])
+  black_lists BlackLists[]
+  risk_records RiskRecords[]
+  @@datasource(dbPostgresql)    
+}
+
+model RiskRecords {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  address_id          Int Addresses @relation(fields: [address_id], references: [id])
+  created_timestamp   DateTime         
+  @@datasource(dbPostgresql)    
 }
