@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = env("DATABASE_URL")
+}
+
+model Transaction {
+  id                  Int    @id @default(autoincrement())
+  blockHash           String
+  blockNumber         Int
+  from                String
+  gas                 String
+  gasPrice            String
+  maxFeePerGas        String
+  maxPriorityFeePerGas String
+  hash                String    @unique
+  input               String
+  nonce               String
+  to                  String
+  transactionIndex    String
+  value               String
+  type                String
+  accessList          String
+  chainId             String
+  v                   String
+  r                   String
+  s                   String
+}
+
+model Block {
+  id               Int    @id @default(autoincrement())
+  baseFeePerGas    String
+  difficulty       String
+  extraData        String
+  gasLimit         String
+  gasUsed          String
+  hash             String    @unique
+  logsBloom        String
+  miner            String
+  mixHash          String
+  nonce            String
+  number           Int    @unique
+  parentHash       String
+  receiptsRoot     String
+  sha3Uncles       String
+  size             String
+  stateRoot        String
+  timestamp        String
+  totalDifficulty  String
+  transactionsRoot String
+  uncles           String
+}
+
+model TransactionReceipt {
+  id                  Int      @id @default(autoincrement())
+  blockHash           String
+  blockNumber         Int
+  contractAddress     String
+  cumulativeGasUsed   String
+  effectiveGasPrice   String
+  from                String
+  gasUsed             String
+  logs                String
+  logsBloom           String
+  status              String
+  to                  String
+  transactionHash     String    @unique
+  transactionIndex    String
+  type                String
+}
