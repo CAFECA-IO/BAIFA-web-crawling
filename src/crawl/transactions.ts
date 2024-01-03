@@ -73,7 +73,7 @@ async function getAndSaveTransactionAndReceiptData(
 }
 
 async function getTransactionInfo(blockNumber: number) {
-  const transactionInfo = await prisma.block.findUnique({
+  const transactionInfo = await prisma.block_raw.findUnique({
     where: { number: blockNumber },
     select: {
       transaction_finished: true,
@@ -93,7 +93,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
   // eslint-disable-next-line no-console
   console.log("transaction:", transaction);
   // check if the transaction hash exists in the database
-  const existingTransaction = await prisma.transaction.findUnique({
+  const existingTransaction = await prisma.transaction_raw.findUnique({
     where: { hash: transactionHash },
   });
   if (!existingTransaction) {
@@ -123,7 +123,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
     // eslint-disable-next-line no-console
     console.log("data:", data);
     // save transaction
-    await prisma.transaction.create({
+    await prisma.transaction_raw.create({
       data,
     });
     // Deprecated:  check transaction saved (20231225 - Gibbs)
@@ -133,7 +133,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
 }
 
 async function getNumberOfTransactions(blockNumber: number) {
-  const numberOfTransactionsOfBlock = await prisma.transaction.count({
+  const numberOfTransactionsOfBlock = await prisma.transaction_raw.count({
     where: { block_number: blockNumber },
   });
   // Deprecated: print numberOfTransactionsOfBlock (20231225 - Gibbs)
@@ -144,7 +144,7 @@ async function getNumberOfTransactions(blockNumber: number) {
 
 async function updateTransactionFinished(blockNumber: number) {
   try {
-    await prisma.block.update({
+    await prisma.block_raw.update({
       where: { number: blockNumber },
       data: { transaction_finished: true },
     });

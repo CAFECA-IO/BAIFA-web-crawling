@@ -27,7 +27,7 @@ class Crawler {
     // eslint-disable-next-line no-console
     console.log("Crawler go");
     await crawlBlock(this.web3);
-    const dataCount = await prisma.block.count();
+    const dataCount = await prisma.block_raw.count();
     // Deprecated: check crawl block end (20231225 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("crawl block end, dataCount:", dataCount);
