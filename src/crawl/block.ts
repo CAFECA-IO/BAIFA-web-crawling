@@ -12,8 +12,8 @@ async function crawlBlock(web3: any) {
   // Deprecated: print latestBlockNumber (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("latestBlockNumber:", latestBlockNumber);
-  // get bigEnd and smallEnd from block table
-  const blockNumbers = await prisma.block.findMany({
+  // get bigEnd and smallEnd from block_raw table
+  const blockNumbers = await prisma.block_raw.findMany({
     select: { number: true },
     orderBy: { number: "desc" },
   });
@@ -87,13 +87,13 @@ async function saveBlock(web3: any, i: number) {
     burnt_fees: 0,
   };
   // use prisma client to store block
-  await prisma.block.create({
+  await prisma.block_raw.create({
     data,
   });
 }
 
 async function checkBlockExisting(blockNumber: number) {
-  const existingBlock = await prisma.block.findUnique({
+  const existingBlock = await prisma.block_raw.findUnique({
     where: { number: blockNumber },
   });
   return existingBlock;

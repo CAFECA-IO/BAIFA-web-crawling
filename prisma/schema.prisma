@@ -11,7 +11,7 @@ datasource dbPostgresql {
 }
 
 
-model Transaction {
+model transaction_raw {
   id                  Int    @id @default(autoincrement())
   block_hash           String
   block_number         Int
@@ -34,7 +34,7 @@ model Transaction {
   s                   String
 }
 
-model Block {
+model block_raw {
   id               Int    @id @default(autoincrement())
   base_fee_per_gas    String
   difficulty       String
@@ -62,7 +62,7 @@ model Block {
   transaction_receipt_finished Boolean  @default(false)
 }
 
-model TransactionReceipt {
+model transaction_receipt_raw {
   id                  Int      @id @default(autoincrement())
   block_hash           String
   block_number         Int
@@ -128,7 +128,7 @@ model transactions {
   related_addresses   String[]        
 }
 
-model blackLists {
+model black_lists {
   id                  Int      @id @default(autoincrement())
   chain_id            Int 
   created_timestamp   DateTime

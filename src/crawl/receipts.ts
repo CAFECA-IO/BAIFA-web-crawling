@@ -7,11 +7,10 @@ async function getTransactionReceiptAndSave(
   transactionHash: string,
 ) {
   // check if the transaction receipt exists in the database
-  const existingTransactionReceipt = await prisma.transactionReceipt.findUnique(
-    {
+  const existingTransactionReceipt =
+    await prisma.transaction_receipt_raw.findUnique({
       where: { transaction_hash: transactionHash },
-    },
-  );
+    });
   if (!existingTransactionReceipt) {
     // Get the transaction receipt by transaction hash
     const transactionReceipt =
@@ -34,7 +33,7 @@ async function getTransactionReceiptAndSave(
       effective_gas_price: transactionReceipt.effectiveGasPrice.toString(),
     };
     // use prisma client to store transaction receipt
-    await prisma.transactionReceipt.create({
+    await prisma.transaction_receipt_raw.create({
       data,
     });
     // Deprecated:  check transactionReceipt saved (20231225 - Gibbs)
@@ -45,7 +44,7 @@ async function getTransactionReceiptAndSave(
 
 async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
   const numberOfTransactionReceiptsOfBlock =
-    await prisma.transactionReceipt.count({
+    await prisma.transaction_receipt_raw.count({
       where: { block_number: blockNumber },
     });
   return numberOfTransactionReceiptsOfBlock;
@@ -53,7 +52,7 @@ async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
 
 async function updateTransactionReceiptFinished(blockNumber: number) {
   try {
-    await prisma.block.update({
+    await prisma.block_raw.update({
       where: { number: blockNumber },
       data: { transaction_receipt_finished: true },
     });
