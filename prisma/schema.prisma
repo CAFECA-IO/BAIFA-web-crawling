@@ -5,10 +5,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource dbSqlite {
-  provider = "sqlite"
-  url = env("DATABASE_URL")
+datasource dbPostgresql {
+  provider = "postgresql"
+  url = env("SECOND_DATABASE_URL")
 }
+
 
 model Transaction {
   id                  Int    @id @default(autoincrement())
@@ -19,7 +20,7 @@ model Transaction {
   gas_price            String
   max_fee_per_gas        String
   max_priority_fee_per_gas String
-  hash                String    @unique
+  hash                String @unique   
   input               String
   nonce               String
   to                  String
@@ -40,12 +41,12 @@ model Block {
   extra_data        String
   gas_limit         String
   gas_used          String
-  hash             String    @unique
+  hash             String    
   logs_bloom        String
   miner            String
   mix_hash          String
   nonce            String
-  number           Int    @unique
+  number           Int @unique    
   parent_hash       String
   receipts_root     String
   sha3_uncles       String
@@ -55,6 +56,7 @@ model Block {
   total_difficulty  String
   transactions_root String
   uncles           String
+  burnt_fees Int 
   transaction_count Int
   transaction_finished        Boolean  @default(false)
   transaction_receipt_finished Boolean  @default(false)
@@ -73,7 +75,144 @@ model TransactionReceipt {
   logs_bloom           String
   status              String
   to                  String
-  transaction_hash     String    @unique
+  transaction_hash     String @unique
   transaction_index    String
   type                String
+}
+
+model contracts {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int
+  contract_address    String 
+  source_code         String
+  creator_address     String
+  created_timestamp   DateTime       
+}
+
+model public_tags {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  target              String
+  target_type         String     
+}
+
+model evidences {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  evidence_address    String
+  state               String
+  content             String
+  creator_address     String    
+}
+
+model chains {
+  id                  Int      @id @default(autoincrement())
+  chain_name          String
+  chain_icon          String    
+}
+
+model transactions {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  hash                String
+  type                String
+  status              String
+  block_id            Int 
+  from_address        String
+  to_address          String
+  evidence_id         Int
+  value               Int
+  fee                 Int
+  related_addresses   String[]        
+}
+
+model blackLists {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  address_id          Int 
+  public_tag          String              
+}
+
+model review_datas {
+  id                  Int      @id @default(autoincrement())
+  target              String
+  target_type         String
+  created_timestamp   DateTime
+  content             String
+  stars               Int   
+}
+
+model red_flags {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  red_flag_type       String
+  total_amount        Int
+  symbol              String
+  related_addresses   String[]
+  related_transactions String[]                
+}
+
+model blocks {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  miner               String
+  reward              Int
+  size                Int
+  symbol              String
+  transaction_count   Int
+  parent_hash         String
+  burnt_fees          Int          
+}
+
+model token_balances {
+  id                  Int      @id @default(autoincrement())
+  address             String
+  value               Int
+  chain_id            Int 
+  currency_id         Int  
+}
+
+model token_transfers {
+  id                  Int      @id @default(autoincrement())
+  from_address        String
+  to_address          String
+  value               Int
+  chain_id            Int 
+  currency_id         Int 
+  transaction_hash    String
+  index               Int            
+}
+
+model currencies {
+  id                  Int      @id @default(autoincrement())
+  risk_level          String
+  price               Int
+  volume_in_24h       Int
+  symbol              String
+  total_amount        Int
+  holder_count        Int
+  total_transfers     Int
+  chain_id            Int                
+}
+
+model addresses {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int 
+  created_timestamp   DateTime
+  address             String @unique
+  type                String
+  score               Int
+  latest_active_time  DateTime     
+}
+
+model risk_records {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  address_id          Int 
+  created_timestamp   DateTime              
 }
