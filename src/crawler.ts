@@ -19,6 +19,7 @@ class Crawler {
   }
 
   start() {
+    this.go();
     // conduct every 3 minutes
     setInterval(() => {
       this.go();
