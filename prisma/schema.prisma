@@ -32,6 +32,7 @@ model transaction_raw {
   v                   String
   r                   String
   s                   String
+  parse_finished  Boolean  @default(false)
 }
 
 model block_raw {
@@ -60,6 +61,7 @@ model block_raw {
   transaction_count Int
   transaction_finished        Boolean  @default(false)
   transaction_receipt_finished Boolean  @default(false)
+  parse_finished  Boolean  @default(false)
 }
 
 model transaction_receipt_raw {
@@ -78,6 +80,7 @@ model transaction_receipt_raw {
   transaction_hash     String @unique
   transaction_index    String
   type                String
+  parse_finished  Boolean  @default(false)
 }
 
 model contracts {
