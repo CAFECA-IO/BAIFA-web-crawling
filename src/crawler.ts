@@ -20,10 +20,10 @@ class Crawler {
 
   start() {
     this.go();
-    // conduct every 3 minutes
+    // conduct every 5 seconds
     setInterval(() => {
       this.go();
-    }, 180000);
+    }, 5000);
   }
 
   async go() {

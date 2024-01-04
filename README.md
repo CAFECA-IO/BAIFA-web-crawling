@@ -1,11 +1,4 @@
-先建好自己的資料庫
-設定好nodejs環境
-git clone
-npm install
-set .env
-npx  prisma db push --schema=./prisma/schema.prisma 不建新資料庫只推schema
-
-## Deploy crawler
+## Deploy crawler - remote server
 - last updated on 2024-01-xx
 
 ### Environment
@@ -20,8 +13,8 @@ npx  prisma db push --schema=./prisma/schema.prisma 不建新資料庫只推sche
   - [password]
 - create directory under root using sudo
   - sudo mkdir /workspace
--  change owner's of /workspace to ${user} 
-  - sudo chown -R ${user} /workspace
+-  change owner's of /workspace to ${user}
+   - sudo chown -R ${user} /workspace
 - go to workspace
   - cd /workspace
 - clone repo from gitHub
@@ -37,8 +30,12 @@ npx  prisma db push --schema=./prisma/schema.prisma 不建新資料庫只推sche
   - Ctrl + O > Enter > Ctrl + X
 - in terminal, apply the bash_profile
   - source ~/.bash_profile
-
-npx  prisma db push --schema=./prisma/schema.prisma 
-
-- run the crawler
-  - npm run start:dev
+- push the schema into the remote server
+  - npx prisma db push --schema=./prisma/schema.prisma 
+- use pm2 to run the crawler
+  - pm2 start npm --name BAIFA-CRAWLER -- start
+- (if needed) terminate the pm2 process
+  - pm2 kill
+- (if needed) continuously observe the process log
+  - pm2 log 0 
+  - ctrl + C to exit
