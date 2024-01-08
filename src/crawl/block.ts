@@ -87,6 +87,8 @@ async function saveBlock(web3: any, i: number) {
     burnt_fees: 0,
   };
   // use prisma client to store block
+  // eslint-disable-next-line no-console
+  console.log("block.number:", block.number);
   await prisma.block_raw.create({
     data,
   });
