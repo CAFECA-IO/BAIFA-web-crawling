@@ -128,7 +128,7 @@ model transactions {
   evidence_id         Int?
   value               Int?
   fee                 Int?
-  related_addresses   String[]?        
+  related_addresses   String[]       
 }
 
 model black_lists {
@@ -155,8 +155,8 @@ model red_flags {
   red_flag_type       String?
   total_amount        Int?
   symbol              String?
-  related_addresses   String[]?
-  related_transactions String[]?                
+  related_addresses   String[]
+  related_transactions String[]                
 }
 
 model blocks {
