@@ -4,7 +4,7 @@ import {
   getTransactionReceiptRawDatas,
 } from "./get_raw_data";
 
-import { toBlocks, toContracts } from "./parsers";
+import { toBlocks, toContracts, toChains } from "./parsers";
 
 async function getDatasByBlockNumber(number: number, web3: any) {
   const block = await getBlockRawData(number);
@@ -15,6 +15,7 @@ async function getDatasByBlockNumber(number: number, web3: any) {
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
   await toBlocks(number, block, transactions);
   await toContracts(block, transactions, transactionReceipts, web3);
+  await toChains(transactions, "iSunCloud");
 }
 
 export { getDatasByBlockNumber };

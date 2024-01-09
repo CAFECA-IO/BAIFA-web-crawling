@@ -77,4 +77,30 @@ async function toContracts(
   console.log("parse to contracts table success");
 }
 
-export { toBlocks, toContracts };
+// parse to chains table
+async function toChains(transactions: any, chain_name: string) {
+  // check if chain exist
+  const chain_id = Number(transactions[0].chain_id);
+  const existingChain = await prisma.chains.findFirst({
+    where: { id: chain_id },
+  });
+  if (!existingChain) {
+    const parsedChain = {
+      id: chain_id,
+      chain_name: chain_name,
+      chain_icon: null,
+    };
+    // create chain
+    await prisma.chains.create({
+      data: parsedChain,
+    });
+    // Deprecated: check parse to chains table success (20240109 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("parsedChain", parsedChain);
+  }
+  // Deprecated: check parse to chains table success (20240109 - Gibbs)
+  // eslint-disable-next-line no-console
+  console.log("parse to chains table success");
+}
+
+export { toBlocks, toContracts, toChains };
