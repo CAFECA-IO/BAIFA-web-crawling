@@ -1,9 +1,12 @@
+import Web3 from "web3";
 import { Logger } from "@nestjs/common";
 import { getDatasByBlockNumber } from "./parse/parsing";
 
 class Parser {
+  private web3: Web3;
   private logger: Logger;
   constructor() {
+    this.web3 = new Web3("https://isuncoin.baifa.io/");
     // Deprecated: check crawler init (20240104 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("Parser constructor");
@@ -23,7 +26,7 @@ class Parser {
     // eslint-disable-next-line no-console
     console.log("Parser go");
     // test
-    await getDatasByBlockNumber(678);
+    await getDatasByBlockNumber(88338, this.web3);
     // Deprecated: check crawl block end (20240104 - Gibbs)
     // eslint-disable-next-line no-console
     // console.log(
