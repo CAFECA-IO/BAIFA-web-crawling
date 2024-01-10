@@ -80,7 +80,7 @@ async function saveBlock(web3: any, i: number) {
     timestamp: block.timestamp.toString(),
     mix_hash: block.mixHash.toString(),
     receipts_root: block.receiptsRoot.toString(),
-    uncles: block.uncles.toString(),
+    uncles: JSON.stringify(block.uncles),
     transaction_count: block.transactions?.length || 0,
     transaction_finished: false,
     transaction_receipt_finished: false,
