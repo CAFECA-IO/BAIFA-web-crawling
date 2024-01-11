@@ -100,13 +100,14 @@ model public_tags {
 }
 
 model evidences {
-  id                  Int      @id @default(autoincrement())
+  id                  String?      @id 
   chain_id            Int? 
   created_timestamp   DateTime?
-  evidence_address    String?
+  contract_address    String?
   state               String?
   content             String?
-  creator_address     String?   
+  creator_address     String?
+  token_id            String?
 }
 
 model chains {
@@ -146,6 +147,7 @@ model review_datas {
   created_timestamp   DateTime?
   content             String?
   stars               Int?
+  author_address      String?
 }
 
 model red_flags {
@@ -210,7 +212,6 @@ model addresses {
   chain_id            Int? 
   created_timestamp   DateTime?
   address             String? @unique
-  type                String?
   score               Int?
   latest_active_time  DateTime?     
 }

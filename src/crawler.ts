@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "@nestjs/common";
-// use prisma client to store raw data
+// Info: (20240111 - Gibbs) use prisma client to store raw data
 import { PrismaClient } from "@prisma/client";
 import { crawlBlock } from "./crawl/block";
 
@@ -20,7 +20,7 @@ class Crawler {
 
   start() {
     this.go();
-    // conduct every 5 seconds
+    // Info: (20240111 - Gibbs) use prisma client to store raw data
     setInterval(() => {
       this.go();
     }, 5000);
