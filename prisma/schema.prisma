@@ -221,3 +221,11 @@ model risk_records {
   address_id          Int? 
   created_timestamp   DateTime?              
 }
+
+model codes {
+  id                  Int      @id @default(autoincrement())
+  table_name          String?
+  table_column        String?
+  value               Int?
+  meaning             String?
+}
