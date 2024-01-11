@@ -100,7 +100,7 @@ model public_tags {
 }
 
 model evidences {
-  id                  String?      @id 
+  id                  String @id      
   chain_id            Int? 
   created_timestamp   DateTime?
   contract_address    String?
