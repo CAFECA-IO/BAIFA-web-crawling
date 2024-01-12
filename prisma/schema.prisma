@@ -128,7 +128,7 @@ model transactions {
   to_address          String?
   evidence_id         Int?
   value               Int?
-  fee                 Int?
+  fee                 BigInt?
   related_addresses   String[]       
 }
 
