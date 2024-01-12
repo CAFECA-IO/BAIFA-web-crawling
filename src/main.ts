@@ -17,9 +17,9 @@ async function bootstrap() {
   const crawler = new Crawler();
   const parser = new Parser();
 
-  // Promise.all([crawler.start()]);
+  Promise.all([crawler.start()]);
   // Promise.all([crawler.start(), parser.start()]);
-  Promise.all([parser.start()]);
+  // Promise.all([parser.start()]);
 }
 
 bootstrap();

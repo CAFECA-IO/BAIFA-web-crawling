@@ -130,6 +130,7 @@ async function toTransactions(
           evidence_id: await evidenceId(transaction, transactionReceipt),
           value: Number(transaction.value),
           fee: Number(transaction.gas) * Number(transaction.gas_price),
+          // receipt from to logs裡每個address
           related_addresses: [],
         };
         console.log("parsedTransaction", parsedTransaction)
@@ -170,7 +171,7 @@ async function type(transaction: any, transactionReceipt: any) {
   } else if (transaction.input.substring(0, 10) === "0x60806040") {
     return "4";
   } else {
-    return transaction.input.substring(0, 10);
+    return "99";
   }
 }
 

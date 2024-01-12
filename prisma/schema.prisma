@@ -42,7 +42,7 @@ model block_raw {
   extra_data        String
   gas_limit         String
   gas_used          String
-  hash             String    
+  hash             String @unique   
   logs_bloom        String
   miner            String
   mix_hash          String

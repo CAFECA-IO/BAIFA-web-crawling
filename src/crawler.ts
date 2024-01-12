@@ -21,9 +21,9 @@ class Crawler {
   start() {
     this.go();
     // Info: (20240111 - Gibbs) use prisma client to store raw data
-    setInterval(() => {
-      this.go();
-    }, 5000);
+    // setInterval(() => {
+    //   this.go();
+    // }, 5000);
   }
 
   async go() {

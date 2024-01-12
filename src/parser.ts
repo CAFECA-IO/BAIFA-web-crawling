@@ -16,9 +16,9 @@ class Parser {
   start() {
     this.go();
     // conduct every 5 seconds
-    // setInterval(() => {
-    //   this.go();
-    // }, 5000);
+    setInterval(() => {
+      this.go();
+    }, 5000);
   }
 
   async go() {
