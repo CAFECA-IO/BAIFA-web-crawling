@@ -27,7 +27,7 @@ model transaction_raw {
   transaction_index    String
   value               String
   type                String
-  access_list          String
+  access_list          Json
   chain_id             String
   v                   String
   r                   String
@@ -56,7 +56,7 @@ model block_raw {
   timestamp        String
   total_difficulty  String
   transactions_root String
-  uncles           String
+  uncles           Json
   burnt_fees Int 
   transaction_count Int
   transaction_finished        Boolean  @default(false)
@@ -73,7 +73,7 @@ model transaction_receipt_raw {
   effective_gas_price   String
   from                String
   gas_used             String
-  logs                String
+  logs                Json
   logs_bloom           String
   status              String
   to                  String

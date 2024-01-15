@@ -8,7 +8,7 @@ async function crawlBlock(web3: any) {
 
   const latestBlockNumber = Number(await web3.eth.getBlockNumber());
   // test
-  // const latestBlockNumber = Number(79829);
+  // const latestBlockNumber = 1095;
   // Deprecated: print latestBlockNumber (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("latestBlockNumber:", latestBlockNumber);
@@ -22,8 +22,8 @@ async function crawlBlock(web3: any) {
   console.log("blockNumbers:", blockNumbers);
 
   //test
-  // const bigEnd = 79820;
-  // const smallEnd = 79815;
+  // const bigEnd = 1092;
+  // const smallEnd = 1092;
   const bigEnd = blockNumbers[0]?.number || -1;
   const smallEnd = blockNumbers[blockNumbers.length - 1]?.number || -1;
   // Deprecated: print bigEnd and smallEnd (20231225 - Gibbs)
@@ -80,7 +80,7 @@ async function saveBlock(web3: any, i: number) {
     timestamp: block.timestamp.toString(),
     mix_hash: block.mixHash.toString(),
     receipts_root: block.receiptsRoot.toString(),
-    uncles: JSON.stringify(block.uncles),
+    uncles: block.uncles,
     transaction_count: block.transactions?.length || 0,
     transaction_finished: false,
     transaction_receipt_finished: false,
