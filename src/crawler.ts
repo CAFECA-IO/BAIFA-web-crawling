@@ -18,18 +18,25 @@ class Crawler {
     this.logger = new Logger();
   }
 
-  start() {
-    this.go();
-    // Info: (20240111 - Gibbs) use prisma client to store raw data
-    // setInterval(() => {
-    //   this.go();
-    // }, 5000);
+  async start() {
+    try {
+      while (true) {
+        // Info: (20240115 - Gibbs) conduct every 5 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await this.go();
+      }
+    } catch (error) {
+      // Deprecated: check crawler error (20240115 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("Crawler error:", error);
+    }
   }
 
   async go() {
     // Deprecated: check crawler start (20231225 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("Crawler go");
+    // Info: (20240115 - Gibbs) use prisma client to store raw data
     await crawlBlock(this.web3);
     const dataCount = await prisma.block_raw.count();
     // Deprecated: check crawl block end (20231225 - Gibbs)
