@@ -127,13 +127,19 @@ async function toTransactions(
           block_hash: transaction.block_hash,
           from_address: transaction.from,
           to_address: transaction.to,
-          evidence_id: await evidenceId(transaction, transactionReceipt),
+          evidence_id: await evidenceId(transaction, transactionReceipt, block),
           value: Number(transaction.value),
           fee: Number(transaction.gas) * Number(transaction.gas_price),
-          // receipt from to logs裡每個address
-          related_addresses: [],
+          // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address
+          related_addresses: [
+            transaction.from,
+            transaction.to,
+            ...transactionReceipt.logs?.map((log) => log.address),
+          ],
         };
-        console.log("parsedTransaction", parsedTransaction)
+        // Deprecated: check parsedTransaction data (20240115 - Gibbs)
+        // eslint-disable-next-line no-console
+        console.log("parsedTransaction", parsedTransaction);
         await prisma.transactions.create({
           data: parsedTransaction,
         });
@@ -168,7 +174,7 @@ async function type(transaction: any, transactionReceipt: any) {
     return "3";
     // evidence
     // 0xb6aca21a test:0x60806040
-  } else if (transaction.input.substring(0, 10) === "0x60806040") {
+  } else if (transaction.input.substring(0, 10) === "0xb6aca21a") {
     return "4";
   } else {
     return "99";
@@ -176,11 +182,15 @@ async function type(transaction: any, transactionReceipt: any) {
 }
 
 // create evidence id
-async function evidenceId(transaction: any, transactionReceipt: any) {
+async function evidenceId(
+  transaction: any,
+  transactionReceipt: any,
+  block: any,
+) {
   // check if transaction is evidence
   // 0xb6aca21a test:0x60806040
-  if (transaction.input?.substring(0, 10) === "0x60806040") {
-    if (transactionReceipt.logs !== "[]") {
+  if (transaction.input?.substring(0, 10) === "0xb6aca21a") {
+    if (transactionReceipt.logs.length > 0) {
       const parsedReceiptLogs = JSON.parse(transactionReceipt.logs);
       console.log("parsedReceiptLogs", parsedReceiptLogs);
       // get evidence id
@@ -188,6 +198,7 @@ async function evidenceId(transaction: any, transactionReceipt: any) {
         parsedReceiptLogs[0].address.substring(2) +
         parsedReceiptLogs[0].topics[3].substring(26);
       console.log("evidenceId:", evidenceId);
+      await toEvidences(transaction, transactionReceipt, evidenceId, block);
       return evidenceId;
     } else {
       return;
@@ -196,47 +207,41 @@ async function evidenceId(transaction: any, transactionReceipt: any) {
 }
 
 // parse to evidences table
-// async function toEvidences(
-//   block: any,
-//   transactions: any[],
-//   transactionReceipts: any[],
-//   web3: any,
-// ) {
-//   // check every transactionReceipts of the block
-//   for (let i = 0; i < transactionReceipts.length; i++) {
-//     if (transactionReceipts[i])
-//     const contractAddress = transactionReceipts[i].contract_address;
-//     // check if data exist
-//     if (contractAddress !== "null") {
-//       const existingEvidence = await prisma.evidences.findFirst({
-//         where: { contract_address: contractAddress },
-//       });
-//       if (!existingEvidence) {
-//         // get contract
-//         // const contract = new web3.eth.Contract([], contractAddress);
-//         // const abi = contract.options.jsonInterface;
-//         const parsedEvidence = {
-//           // to do
-//           // parse transactionReceipts log:
-//           // events: nft, erc20, create contract, call contract
-//           chain_id: Number(transactions[0].chain_id),
-//           contract_address: contractAddress,
-//           creator_address: transactionReceipts[i].from,
-//           created_timestamp: new Date(block.timestamp * 1000),
-//           source_code: await web3.eth.getCode(contractAddress),
-//         };
-//         await prisma.evidences.create({
-//           data: parsedEvidence,
-//         });
-//         // Deprecated: check parse to evidences table success (20240109 - Gibbs)
-//         // eslint-disable-next-line no-console
-//         console.log("parsedEvidence", parsedEvidence);
-//       }
-//     }
-//   }
-//   // Deprecated: check parse to evidences table success (20240109 - Gibbs)
-//   // eslint-disable-next-line no-console
-//   console.log("parse to evidences table success");
-// }
+async function toEvidences(
+  transaction: any,
+  transactionReceipt: any,
+  evidenceId: string,
+  block: any,
+) {
+  // check if evidence id exist
+  const existingEvidence = await prisma.evidences.findFirst({
+    where: { evidence_id : evidenceId },
+  });
+  if (!existingEvidence) {
+    const parsedEvidence = {
+      // to do
+      // parse transactionReceipts log:
+      // events: nft, erc20, create contract, call contract
+      evidence_id: evidenceId,
+      chain_id: Number(transaction.chain_id),
+      created_timestamp: new Date(block.timestamp * 1000),
+      contract_address: "0x" + evidenceId.substring(0, 40),
+      state: "public",
+      content: "a json content",
+      creator_address: transactionReceipt.from,
+      token_id: evidenceId.substring(40),
+    };
+    await prisma.evidences.create({
+      data: parsedEvidence,
+    });
+    // Deprecated: check parse to evidences table success (20240115 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log(
+      "parse to evidences table success",
+      "parsedEvidence",
+      parsedEvidence,
+    );
+  }
+}
 
 export { toBlocks, toContracts, toChains, toTransactions };

@@ -15,11 +15,6 @@ async function getTransactionReceiptAndSave(
     // Get the transaction receipt by transaction hash
     const transactionReceipt =
       await web3.eth.getTransactionReceipt(transactionHash);
-    console.log(
-      "transactionReceipt.logs:",
-      typeof transactionReceipt.logs,
-      transactionReceipt.logs,
-    );
     const data = {
       transaction_hash: transactionReceipt.transactionHash.toString(),
       transaction_index: transactionReceipt.transactionIndex.toString(),

@@ -100,7 +100,8 @@ model public_tags {
 }
 
 model evidences {
-  id                  String @id      
+  id                  Int      @id @default(autoincrement())
+  evidence_id         String?      
   chain_id            Int? 
   created_timestamp   DateTime?
   contract_address    String?
@@ -126,7 +127,7 @@ model transactions {
   block_hash          String? 
   from_address        String?
   to_address          String?
-  evidence_id         Int?
+  evidence_id         String?
   value               Int?
   fee                 BigInt?
   related_addresses   String[]       
