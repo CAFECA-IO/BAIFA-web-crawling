@@ -147,6 +147,7 @@ async function toTransactions(
         // Deprecated: check parse to transactions table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
+        await toAddresses(parsedTransaction);
       }
     }
   }
@@ -246,6 +247,55 @@ async function toEvidences(
       "parsedEvidence",
       parsedEvidence,
     );
+  }
+}
+
+// parse to addresses table
+async function toAddresses(parsedTransaction: any) {
+  // check if address exist
+  const address = parsedTransaction.from_address;
+  const existingAddress = await prisma.addresses.findFirst({
+    where: { address: address },
+  });
+  if (!existingAddress) {
+    const parsedAddress = {
+      chain_id: parsedTransaction.chain_id,
+      created_timestamp: parsedTransaction.created_timestamp,
+      address: address,
+      score: 60,
+      latest_active_time: parsedTransaction.created_timestamp,
+    };
+    await prisma.addresses.create({
+      data: parsedAddress,
+    });
+    // Deprecated: check parse to addresses table success (20240116 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("parse to addresses table success", parsedAddress);
+  } else {
+    // update latest_active_time
+    if (
+      existingAddress.latest_active_time < parsedTransaction.created_timestamp
+    ) {
+      await prisma.addresses.update({
+        where: { address: address },
+        data: { latest_active_time: parsedTransaction.created_timestamp },
+      });
+      // Deprecated: check update latest_active_time success (20240116 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("update address latest_active_time success");
+    }
+    // update created_timestamp
+    if (
+      existingAddress.created_timestamp > parsedTransaction.created_timestamp
+    ) {
+      await prisma.addresses.update({
+        where: { address: address },
+        data: { created_timestamp: parsedTransaction.created_timestamp },
+      });
+      // Deprecated: check update created_timestamp success (20240116 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("update address created_timestamp success");
+    }
   }
 }
 
