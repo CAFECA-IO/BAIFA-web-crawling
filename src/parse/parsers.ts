@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // parse to blocks table
-async function toBlocks(number: number, block: any, transactions: any[]) {
+async function toBlocks(number: number, block: any, chainId: number) {
   const parsedBlock = {
-    chain_id: Number(transactions[0].chain_id),
+    chain_id: chainId,
     symbol: "ISC",
     burnt_fees: 0,
     created_timestamp: new Date(block.timestamp * 1000),
@@ -37,9 +37,9 @@ async function toBlocks(number: number, block: any, transactions: any[]) {
 // parse to contracts table
 async function toContracts(
   block: any,
-  transactions: any[],
   transactionReceipts: any[],
   web3: any,
+  chainId: number,
 ) {
   // check every transactionReceipts of the block
   for (let i = 0; i < transactionReceipts.length; i++) {
@@ -57,7 +57,7 @@ async function toContracts(
           // to do
           // parse transactionReceipts log:
           // events: nft, erc20, create contract, call contract
-          chain_id: Number(transactions[0].chain_id),
+          chain_id: chainId,
           contract_address: contractAddress,
           creator_address: transactionReceipts[i].from,
           created_timestamp: new Date(block.timestamp * 1000),
@@ -78,15 +78,14 @@ async function toContracts(
 }
 
 // parse to chains table
-async function toChains(transactions: any, chain_name: string) {
+async function toChains(chain_name: string, chainId: number) {
   // check if chain exist
-  const chain_id = Number(transactions[0].chain_id);
   const existingChain = await prisma.chains.findFirst({
-    where: { id: chain_id },
+    where: { id: chainId },
   });
   if (!existingChain) {
     const parsedChain = {
-      id: chain_id,
+      id: chainId,
       chain_name: chain_name,
       chain_icon: "/currencies/isun.svg",
     };
@@ -130,11 +129,13 @@ async function toTransactions(
           evidence_id: await evidenceId(transaction, transactionReceipt, block),
           value: Number(transaction.value),
           fee: Number(transaction.gas) * Number(transaction.gas_price),
-          // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address
+          // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address, 不重複
           related_addresses: [
-            transaction.from,
-            transaction.to,
-            ...transactionReceipt.logs?.map((log) => log.address),
+            ...new Set([
+              transaction.from,
+              transaction.to,
+              ...transactionReceipt.logs?.map((log) => log.address),
+            ]),
           ],
         };
         // Deprecated: check parsedTransaction data (20240115 - Gibbs)
@@ -191,12 +192,16 @@ async function evidenceId(
   // 0xb6aca21a test:0x60806040
   if (transaction.input?.substring(0, 10) === "0xb6aca21a") {
     if (transactionReceipt.logs.length > 0) {
-      const parsedReceiptLogs = JSON.parse(transactionReceipt.logs);
+      const parsedReceiptLogs = transactionReceipt.logs;
+      // Deprecated: check parsedReceiptLogs data (20240116 - Gibbs)
+      // eslint-disable-next-line no-console
       console.log("parsedReceiptLogs", parsedReceiptLogs);
       // get evidence id
       const evidenceId =
         parsedReceiptLogs[0].address.substring(2) +
         parsedReceiptLogs[0].topics[3].substring(26);
+      // Deprecated: check evidenceId data (20240116 - Gibbs)
+      // eslint-disable-next-line no-console
       console.log("evidenceId:", evidenceId);
       await toEvidences(transaction, transactionReceipt, evidenceId, block);
       return evidenceId;
@@ -215,7 +220,7 @@ async function toEvidences(
 ) {
   // check if evidence id exist
   const existingEvidence = await prisma.evidences.findFirst({
-    where: { evidence_id : evidenceId },
+    where: { evidence_id: evidenceId },
   });
   if (!existingEvidence) {
     const parsedEvidence = {

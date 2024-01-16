@@ -26,7 +26,7 @@ class Parser {
     // eslint-disable-next-line no-console
     console.log("Parser go");
     // test
-    await getDatasByBlockNumber(88338, this.web3);
+    await getDatasByBlockNumber(190353, this.web3);
     // Deprecated: check crawl block end (20240104 - Gibbs)
     // eslint-disable-next-line no-console
     // console.log(
