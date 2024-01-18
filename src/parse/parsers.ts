@@ -133,7 +133,7 @@ async function toTransactions(
           related_addresses: [
             ...new Set([
               transaction.from,
-              transaction.to,
+              transaction?.to,
               ...transactionReceipt.logs?.map((log) => log.address),
             ]),
           ],

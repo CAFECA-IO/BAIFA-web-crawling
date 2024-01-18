@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { Logger } from "@nestjs/common";
-import { getDatasByBlockNumber } from "./parse/parsing";
+import { parsing } from "./parse/parsing";
 
 class Parser {
   private web3: Web3;
@@ -13,30 +13,25 @@ class Parser {
     this.logger = new Logger();
   }
 
-  start() {
-    this.go();
-    // conduct every 5 seconds
-    setInterval(() => {
-      this.go();
-    }, 5000);
+  async start() {
+    try {
+      while (true) {
+        // Info: (20240118 - Gibbs) conduct every 5 seconds
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await this.go();
+      }
+    } catch (error) {
+      // Deprecated: check parser error (20240118 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("Parser error:", error);
+    }
   }
 
   async go() {
     // Deprecated: check crawler start (20240104 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("Parser go");
-    // test
-    await getDatasByBlockNumber(190353, this.web3);
-    // Deprecated: check crawl block end (20240104 - Gibbs)
-    // eslint-disable-next-line no-console
-    // console.log(
-    //   "block data:",
-    //   datas.block,
-    //   "transaction data:",
-    //   datas.transactions,
-    //   "transactionReceipt data:",
-    //   datas.transactionReceipts,
-    // );
+    await parsing(this.web3);
   }
 }
 
