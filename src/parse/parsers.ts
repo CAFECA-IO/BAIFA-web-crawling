@@ -148,6 +148,7 @@ async function toTransactions(
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
         await toAddresses(parsedTransaction);
+        await toTokenTransfers(parsedTransaction)
       }
     }
   }
@@ -297,6 +298,39 @@ async function toAddresses(parsedTransaction: any) {
       console.log("update address created_timestamp success");
     }
   }
+}
+
+// parse to token_transfers table
+async function toTokenTransfers(parsedTransaction: any) {
+  // check if transaction exist
+  const existingTokenTransfer = await prisma.token_transfers.findFirst({
+    where: { transaction_hash: parsedTransaction.hash },
+  });
+  if (!existingTokenTransfer) {
+    const parsedTokenTransfer = {
+      from_address: parsedTransaction.from_address,
+      to_address: parsedTransaction.to_address,
+      value: parsedTransaction.value,
+      chain_id: parsedTransaction.chain_id,
+    };
+    await prisma.token_transfers.create({
+      data: parsedTokenTransfer,
+    });
+    // Deprecated: check parse to token_transfers table success (20240116 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("parse to token_transfers table success", parsedTokenTransfer);
+  }
+}
+
+
+
+
+
+      value               Int ?
+        chain_id            Int ?
+          currency_id         Int ?
+            transaction_hash    String ?
+              index               Int ?            
 }
 
 export { toBlocks, toContracts, toChains, toTransactions };

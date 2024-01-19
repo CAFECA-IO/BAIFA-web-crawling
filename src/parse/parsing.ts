@@ -42,7 +42,7 @@ async function parsing(web3: any) {
         orderBy: { number: "desc" },
       })
     )?.number || 0;
-  console.log("startBlockNumber:", startBlockNumber);
+  // console.log("startBlockNumber:", startBlockNumber);
   const endBlockNumber = (
     await prisma.block_raw.findFirst({
       select: { number: true },

@@ -179,10 +179,9 @@ model blocks {
 
 model token_balances {
   id                  Int      @id @default(autoincrement())
-  address             String?
   value               Int?
   chain_id            Int?
-  currency_id         Int?  
+  currency_id         String?  
 }
 
 model token_transfers {
@@ -191,13 +190,13 @@ model token_transfers {
   to_address          String?
   value               Int?
   chain_id            Int?
-  currency_id         Int? 
+  currency_id         String? 
   transaction_hash    String?
   index               Int?            
 }
 
 model currencies {
-  id                  Int      @id @default(autoincrement())
+  id                  String      @id 
   risk_level          String?
   price               Int?
   volume_in_24h       Int?
