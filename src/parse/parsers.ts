@@ -148,7 +148,12 @@ async function toTransactions(
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
         await toAddresses(parsedTransaction);
-        await toTokenTransfers(parsedTransaction, transaction, transactionReceipt);
+        const parsedTokenTransfer = await toTokenTransfers(
+          parsedTransaction,
+          transaction,
+          transactionReceipt,
+        );
+        await toTokenBalances(parsedTokenTransfer);
       }
     }
   }
@@ -301,13 +306,24 @@ async function toAddresses(parsedTransaction: any) {
 }
 
 // parse to token_transfers table
-async function toTokenTransfers(parsedTransaction: any, transaction: any, transactionReceipt: any) {
+async function toTokenTransfers(
+  parsedTransaction: any,
+  transaction: any,
+  transactionReceipt: any,
+) {
   // check if transaction exist
   const existingTokenTransfer = await prisma.token_transfers.findFirst({
     where: { transaction_hash: parsedTransaction.hash },
   });
-  const transactionReceiptLogsTopics = transactionReceipt.logs[0]?.topics || null;
-  if (!existingTokenTransfer || transactionReceiptLogsTopics || transactionReceiptLogsTopics.length === 3 || transactionReceiptLogsTopics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef") {
+  const transactionReceiptLogsTopics =
+    transactionReceipt.logs[0]?.topics || null;
+  if (
+    !existingTokenTransfer ||
+    transactionReceiptLogsTopics ||
+    transactionReceiptLogsTopics.length === 3 ||
+    transactionReceiptLogsTopics[0] ===
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+  ) {
     const parsedTokenTransfer = {
       from_address: transactionReceiptLogsTopics[1],
       to_address: transactionReceiptLogsTopics[2],
@@ -323,14 +339,73 @@ async function toTokenTransfers(parsedTransaction: any, transaction: any, transa
     // Deprecated: check parse to token_transfers table success (20240116 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to token_transfers table success", parsedTokenTransfer);
+    return parsedTokenTransfer;
   }
 }
 
-
-
-  currency_id         String ?
-
-  index               Int ?            
+// parse to token_balances table
+async function toTokenBalances(parsedTokenTransfer: any) {
+  // check if from_address exist
+  const existingFrom = await prisma.token_balances.findFirst({
+    where: {
+      address: parsedTokenTransfer.from_address,
+      currency_id: parsedTokenTransfer.currency_id,
+    },
+  });
+  if (!existingFrom) {
+    const parsedFromTokenBalance = {
+      address: parsedTokenTransfer.from_address,
+      currency_id: parsedTokenTransfer.currency_id,
+      value: parsedTokenTransfer.value * -1,
+      chain_id: parsedTokenTransfer.chain_id,
+    };
+    await prisma.token_balances.create({
+      data: parsedFromTokenBalance,
+    });
+  } else {
+    // update token_balance
+    await prisma.token_balances.updateMany({
+      where: {
+        address: parsedTokenTransfer.from_address,
+        currency_id: parsedTokenTransfer.currency_id,
+      },
+      data: {
+        value: existingFrom.value - parsedTokenTransfer.value,
+      },
+    });
+  }
+  // check if to_address exist
+  const existingTo = await prisma.token_balances.findFirst({
+    where: {
+      address: parsedTokenTransfer.to_address,
+      currency_id: parsedTokenTransfer.currency_id,
+    },
+  });
+  if (!existingTo) {
+    const parsedToTokenBalance = {
+      address: parsedTokenTransfer.to_address,
+      currency_id: parsedTokenTransfer.currency_id,
+      value: parsedTokenTransfer.value,
+      chain_id: parsedTokenTransfer.chain_id,
+    };
+    await prisma.token_balances.create({
+      data: parsedToTokenBalance,
+    });
+  } else {
+    // update token_balance
+    await prisma.token_balances.updateMany({
+      where: {
+        address: parsedTokenTransfer.to_address,
+        currency_id: parsedTokenTransfer.currency_id,
+      },
+      data: {
+        value: existingTo.value + parsedTokenTransfer.value,
+      },
+    });
+  }
+  // Deprecated: check parse to token_balances table success (20240122 - Gibbs)
+  // eslint-disable-next-line no-console
+  console.log("parse to token_balances table success");
 }
 
 export { toBlocks, toContracts, toChains, toTransactions };
