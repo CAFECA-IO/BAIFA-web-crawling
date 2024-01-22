@@ -148,7 +148,7 @@ async function toTransactions(
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
         await toAddresses(parsedTransaction);
-        await toTokenTransfers(parsedTransaction)
+        await toTokenTransfers(parsedTransaction, transaction, transactionReceipt);
       }
     }
   }
@@ -301,17 +301,21 @@ async function toAddresses(parsedTransaction: any) {
 }
 
 // parse to token_transfers table
-async function toTokenTransfers(parsedTransaction: any) {
+async function toTokenTransfers(parsedTransaction: any, transaction: any, transactionReceipt: any) {
   // check if transaction exist
   const existingTokenTransfer = await prisma.token_transfers.findFirst({
     where: { transaction_hash: parsedTransaction.hash },
   });
-  if (!existingTokenTransfer) {
+  const transactionReceiptLogsTopics = transactionReceipt.logs[0]?.topics || null;
+  if (!existingTokenTransfer || transactionReceiptLogsTopics || transactionReceiptLogsTopics.length === 3 || transactionReceiptLogsTopics[0] === "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef") {
     const parsedTokenTransfer = {
-      from_address: parsedTransaction.from_address,
-      to_address: parsedTransaction.to_address,
-      value: parsedTransaction.value,
+      from_address: transactionReceiptLogsTopics[1],
+      to_address: transactionReceiptLogsTopics[2],
+      value: parseInt(transactionReceipt.logs[0]?.data, 16),
       chain_id: parsedTransaction.chain_id,
+      currency_id: parsedTransaction.to_address,
+      transaction_hash: parsedTransaction.hash,
+      index: Number(transaction.transaction_index),
     };
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
@@ -324,13 +328,9 @@ async function toTokenTransfers(parsedTransaction: any) {
 
 
 
+  currency_id         String ?
 
-
-      value               Int ?
-        chain_id            Int ?
-          currency_id         Int ?
-            transaction_hash    String ?
-              index               Int ?            
+  index               Int ?            
 }
 
 export { toBlocks, toContracts, toChains, toTransactions };

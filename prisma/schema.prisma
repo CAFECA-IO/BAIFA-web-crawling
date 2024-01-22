@@ -179,6 +179,7 @@ model blocks {
 
 model token_balances {
   id                  Int      @id @default(autoincrement())
+  address             String?
   value               Int?
   chain_id            Int?
   currency_id         String?  
