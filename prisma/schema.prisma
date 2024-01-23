@@ -205,7 +205,8 @@ model currencies {
   total_amount        Int?
   holder_count        Int?
   total_transfers     Int?
-  chain_id            Int?                
+  chain_id            Int?
+  name                String?           
 }
 
 model addresses {
