@@ -154,6 +154,7 @@ async function toTransactions(
           transactionReceipt,
         );
         await toTokenBalances(parsedTokenTransfer);
+        await toCurrencies(parsedTokenTransfer);
       }
     }
   }
@@ -311,9 +312,9 @@ async function toTokenTransfers(
   transaction: any,
   transactionReceipt: any,
 ) {
-  // check if transaction exist
+  // check if transfer exist
   const existingTokenTransfer = await prisma.token_transfers.findFirst({
-    where: { transaction_hash: parsedTransaction.hash },
+    where: { transaction_hash: parsedTransaction.hash, index: transaction.transaction_index },
   });
   const transactionReceiptLogsTopics =
     transactionReceipt.logs[0]?.topics || null;
@@ -406,6 +407,52 @@ async function toTokenBalances(parsedTokenTransfer: any) {
   // Deprecated: check parse to token_balances table success (20240122 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("parse to token_balances table success");
+}
+
+// parse to currencies table
+async function toCurrencies(parsedTokenTransfer: any) {
+  const holderCount = await prisma.token_balances.count({
+    where: { currency_id: parsedTokenTransfer.currency_id },
+  });
+  const total_amount = await prisma.token_balances.aggregate({
+    where: { currency_id: parsedTokenTransfer.currency_id },
+    _sum: { value: true },
+  });
+  // check if currency id (contract address) exist
+  const existingCurrency = await prisma.currencies.findFirst({
+    where: { id: parsedTokenTransfer.currency_id },
+  });
+  if (!existingCurrency) {
+    const parsedCurrency = {
+      id: parsedTokenTransfer.currency_id,
+      risk_level: "normal",
+      price:               Int?,
+      volume_in_24h:       Int?,
+      symbol:              String?,
+      total_amount: total_amount,
+      holder_count: holderCount,
+      total_transfers: parsedTokenTransfer.value,
+      chain_id: parsedTokenTransfer.chain_id,  
+    };
+    await prisma.currencies.create({
+      data: parsedCurrency,
+    });
+  } else {
+    // update currency
+    const parsedCurrency = {
+      price: Int ?,
+      volume_in_24h: Int ?,
+      total_amount: total_amount,
+      holder_count: holderCount,
+      total_transfers: existingCurrency.total_transfers + parsedTokenTransfer.value,
+    };
+    await prisma.currencies.updateMany({
+      where: { id: parsedTokenTransfer.currency_id },
+      data: {
+        // to do
+      },
+    });
+  }
 }
 
 export { toBlocks, toContracts, toChains, toTransactions };
