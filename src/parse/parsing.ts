@@ -25,7 +25,7 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   await toBlocks(number, block, chainId);
   await toContracts(block, transactionReceipts, web3, chainId);
   await toChains(chainName, chainId);
-  await toTransactions(transactions, block, transactionReceipts);
+  await toTransactions(transactions, block, transactionReceipts, web3);
 }
 
 async function parsing(web3: any) {
