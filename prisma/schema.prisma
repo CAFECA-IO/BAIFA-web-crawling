@@ -89,14 +89,18 @@ model contracts {
   contract_address    String? 
   source_code         String?
   creator_address     String?
-  created_timestamp   DateTime?       
+  created_timestamp   DateTime?
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  public_tags         public_tags? @relation(fields: [contract_address], references: [target])       
 }
 
 model public_tags {
   id                  Int      @id @default(autoincrement())
   name                String?
-  target              String?
-  target_type         String?    
+  target              String? @unique
+  target_type         String?
+  contracts           contracts[]
+  addresses           addresses[] @relation("public_tags")   
 }
 
 model evidences {
@@ -109,12 +113,23 @@ model evidences {
   content             String?
   creator_address     String?
   token_id            String?
+  chains              chains? @relation(fields: [chain_id], references: [id])
 }
 
 model chains {
   id                  Int      @id
   chain_name          String?
-  chain_icon          String?   
+  chain_icon          String?
+  currencies          currencies[]
+  blocks              blocks[]
+  addresses           addresses[]
+  evidences           evidences[]
+  contracts           contracts[]
+  transactions        transactions[]
+  red_flags           red_flags[]
+  black_lists         black_lists[]
+  token_balances      token_balances[]
+  token_transfers     token_transfers[]
 }
 
 model transactions {
@@ -130,25 +145,30 @@ model transactions {
   evidence_id         String?
   value               Int?
   fee                 BigInt?
-  related_addresses   String[]       
+  related_addresses   String[]
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  blocks              blocks? @relation(fields: [block_hash], references: [hash])       
 }
 
 model black_lists {
   id                  Int      @id @default(autoincrement())
   chain_id            Int? 
   created_timestamp   DateTime?
-  address_id          Int? 
-  public_tag          String?              
+  address_id          Int? @unique
+  public_tag          String?
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  addresses           addresses? @relation(fields: [address_id], references: [id])              
 }
 
 model review_datas {
   id                  Int      @id @default(autoincrement())
-  target              String?
+  target              String? @unique
   target_type         String?
   created_timestamp   DateTime?
   content             String?
   stars               Int?
   author_address      String?
+  addresses           addresses[] @relation("review_datas")
 }
 
 model red_flags {
@@ -159,7 +179,8 @@ model red_flags {
   total_amount        Int?
   symbol              String?
   related_addresses   String[]
-  related_transactions String[]                
+  related_transactions String[]
+  chains               chains? @relation(fields: [chain_id], references: [id])                
 }
 
 model blocks {
@@ -173,8 +194,10 @@ model blocks {
   transaction_count   Int?
   parent_hash         String?
   burnt_fees          Int?   
-  hash                String?
-  number              Int? @unique     
+  hash                String? @unique
+  number              Int? @unique
+  transactions        transactions[]
+  chains              chains? @relation(fields: [chain_id], references: [id])     
 }
 
 model token_balances {
@@ -182,7 +205,9 @@ model token_balances {
   address             String?
   value               Int?
   chain_id            Int?
-  currency_id         String?  
+  currency_id         String? @unique
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  currencies          currencies? @relation(fields: [currency_id], references: [id])  
 }
 
 model token_transfers {
@@ -193,7 +218,9 @@ model token_transfers {
   chain_id            Int?
   currency_id         String? 
   transaction_hash    String?
-  index               Int?            
+  index               Int?
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  currencies          currencies? @relation(fields: [currency_id], references: [id])      
 }
 
 model currencies {
@@ -206,7 +233,10 @@ model currencies {
   holder_count        Int?
   total_transfers     Int?
   chain_id            Int?
-  name                String?           
+  name                String?
+  token_transfers     token_transfers[]
+  token_balances      token_balances?
+  chains              chains? @relation(fields: [chain_id], references: [id])           
 }
 
 model addresses {
@@ -215,14 +245,20 @@ model addresses {
   created_timestamp   DateTime?
   address             String? @unique
   score               Int?
-  latest_active_time  DateTime?     
+  latest_active_time  DateTime?
+  risk_records        risk_records[]
+  black_lists         black_lists?
+  chains              chains? @relation(fields: [chain_id], references: [id])
+  public_tags         public_tags? @relation("public_tags", fields: [address], references: [target], map: "public_tags_fkey")
+  review_datas        review_datas? @relation("review_datas", fields: [address], references: [target], map: "review_datas_fkey")     
 }
 
 model risk_records {
   id                  Int      @id @default(autoincrement())
   name                String?
   address_id          Int? 
-  created_timestamp   DateTime?              
+  created_timestamp   DateTime?
+  addresses           addresses? @relation(fields: [address_id], references: [id])              
 }
 
 model codes {
