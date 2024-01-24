@@ -26,7 +26,7 @@ async function toBlocks(number: number, block: any, chainId: number) {
       parent_hash: block.parent_hash,
       number: Number(block.number),
       hash: block.hash,
-    }
+    };
     await prisma.blocks.create({
       data: parsedBlock,
     });
@@ -38,7 +38,7 @@ async function toBlocks(number: number, block: any, chainId: number) {
     // Deprecated: check parse to blocks table success (20240105 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to blocks table success", parsedBlock);
-  };
+  }
 }
 
 // parse to contracts table
@@ -338,8 +338,8 @@ async function toTokenTransfers(
   });
   const transactionReceiptLogsTopics =
     transactionReceipt.logs[0]?.topics || null;
-    // erc20 transfer
-    if (
+  // erc20 transfer
+  if (
     !existingTokenTransfer ||
     transactionReceiptLogsTopics ||
     transactionReceiptLogsTopics.length === 3 ||
@@ -358,21 +358,32 @@ async function toTokenTransfers(
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
     });
-    // Deprecated: check parse to token_transfers table success (20240116 - Gibbs)
+    // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to token_transfers table success", parsedTokenTransfer);
     return parsedTokenTransfer;
     // normal transfer
-  } else if (!existingTokenTransfer || !transactionReceiptLogsTopics || parsedTransaction.type === "0") {
+  } else if (
+    !existingTokenTransfer ||
+    !transactionReceiptLogsTopics ||
+    parsedTransaction.type === "0"
+  ) {
     const parsedTokenTransfer = {
       from_address: parsedTransaction.from_address,
       to_address: parsedTransaction.to_address,
       value: parsedTransaction.value,
       chain_id: parsedTransaction.chain_id,
-      currency_id: ?????????????,
+      currency_id: "0x0000000000000000000000000000000000000000",
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
     };
+    await prisma.token_transfers.create({
+      data: parsedTokenTransfer,
+    });
+    // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("parse to token_transfers table success", parsedTokenTransfer);
+    return parsedTokenTransfer;
   }
 }
 
