@@ -6,34 +6,39 @@ const prisma = new PrismaClient();
 
 // parse to blocks table
 async function toBlocks(number: number, block: any, chainId: number) {
-  const parsedBlock = {
-    chain_id: chainId,
-    symbol: "ISC",
-    burnt_fees: 0,
-    created_timestamp: new Date(block.timestamp * 1000),
-    miner: block.miner,
-    reward: (
-      Number(block.base_fee_per_gas) * Number(block.gas_used) +
-      10 ** 18
-    ).toString(),
-    size: Number(block.size),
-    transaction_count: block.transaction_count,
-    parent_hash: block.parent_hash,
-    number: Number(block.number),
-    hash: block.hash,
-  };
   // check if data exist
   const existingBlock = await prisma.blocks.findUnique({
     where: { number: number },
   });
   if (!existingBlock) {
+    const parsedBlock = {
+      chain_id: chainId,
+      symbol: "ISC",
+      burnt_fees: 0,
+      created_timestamp: new Date(block.timestamp * 1000),
+      miner: block.miner,
+      reward: (
+        Number(block.base_fee_per_gas) * Number(block.gas_used) +
+        10 ** 18
+      ).toString(),
+      size: Number(block.size),
+      transaction_count: block.transaction_count,
+      parent_hash: block.parent_hash,
+      number: Number(block.number),
+      hash: block.hash,
+    }
     await prisma.blocks.create({
       data: parsedBlock,
     });
-  }
-  // Deprecated: check parse to blocks table success (20240105 - Gibbs)
-  // eslint-disable-next-line no-console
-  console.log("parse to blocks table success", parsedBlock);
+    // update block_raw parse_finished status
+    await prisma.block_raw.update({
+      where: { number: number },
+      data: { parse_finished: true },
+    });
+    // Deprecated: check parse to blocks table success (20240105 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("parse to blocks table success", parsedBlock);
+  };
 }
 
 // parse to contracts table
@@ -146,6 +151,15 @@ async function toTransactions(
         console.log("parsedTransaction", parsedTransaction);
         await prisma.transactions.create({
           data: parsedTransaction,
+        });
+        // update transaction_raw and transaction_receipt_raw parse_finished status
+        await prisma.transaction_raw.update({
+          where: { hash: transaction.hash },
+          data: { parse_finished: true },
+        });
+        await prisma.transaction_receipt_raw.update({
+          where: { transaction_hash: transaction.hash },
+          data: { parse_finished: true },
         });
         // Deprecated: check parse to transactions table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
@@ -324,7 +338,8 @@ async function toTokenTransfers(
   });
   const transactionReceiptLogsTopics =
     transactionReceipt.logs[0]?.topics || null;
-  if (
+    // erc20 transfer
+    if (
     !existingTokenTransfer ||
     transactionReceiptLogsTopics ||
     transactionReceiptLogsTopics.length === 3 ||
@@ -347,6 +362,17 @@ async function toTokenTransfers(
     // eslint-disable-next-line no-console
     console.log("parse to token_transfers table success", parsedTokenTransfer);
     return parsedTokenTransfer;
+    // normal transfer
+  } else if (!existingTokenTransfer || !transactionReceiptLogsTopics || parsedTransaction.type === "0") {
+    const parsedTokenTransfer = {
+      from_address: parsedTransaction.from_address,
+      to_address: parsedTransaction.to_address,
+      value: parsedTransaction.value,
+      chain_id: parsedTransaction.chain_id,
+      currency_id: ?????????????,
+      transaction_hash: parsedTransaction.hash,
+      index: Number(transaction.transaction_index),
+    };
   }
 }
 
