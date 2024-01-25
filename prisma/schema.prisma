@@ -120,6 +120,9 @@ model chains {
   id                  Int      @id
   chain_name          String?
   chain_icon          String?
+  symbol              String?
+  decimals            Int?
+  rpc                 String?
   currencies          currencies[]
   blocks              blocks[]
   addresses           addresses[]

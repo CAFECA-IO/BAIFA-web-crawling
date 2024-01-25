@@ -4,16 +4,16 @@ import {
   getTransactionReceiptRawDatas,
 } from "./get_raw_data";
 
-import { toBlocks, toContracts, toChains, toTransactions } from "./parsers";
+import { toBlocks, toContracts, toTransactions } from "./parsers";
 
 import { PrismaClient } from "@prisma/client";
 
+// import chainData
+import { chainData } from "src/parser";
+
 const prisma = new PrismaClient();
 
-// Info: (20240116 - Gibbs) put chainId here, iSunCloud
-const chainId = 8017;
-// Info: (20240116 - Gibbs) put chainName here, iSunCloud
-const chainName = "iSunChain";
+const chainId = chainData.chain_id;
 
 async function parseDatasByBlockNumber(number: number, web3: any) {
   const block = await getBlockRawData(number);
@@ -24,7 +24,6 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
   await toBlocks(number, block, chainId);
   await toContracts(block, transactionReceipts, web3, chainId);
-  await toChains(chainName, chainId);
   await toTransactions(transactions, block, transactionReceipts, web3);
 }
 

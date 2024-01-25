@@ -85,16 +85,19 @@ async function toContracts(
 }
 
 // parse to chains table
-async function toChains(chain_name: string, chainId: number) {
+async function toChains(chainData: any) {
   // check if chain exist
   const existingChain = await prisma.chains.findFirst({
-    where: { id: chainId },
+    where: { id: chainData.chain_id },
   });
   if (!existingChain) {
     const parsedChain = {
-      id: chainId,
-      chain_name: chain_name,
-      chain_icon: "/currencies/isun.svg",
+      id: chainData.chain_id,
+      chain_name: chainData.chain_name,
+      chain_icon: chainData.chain_icon,
+      symbol: chainData.symbol,
+      decimals: chainData.decimals,
+      rpc: chainData.rpc,
     };
     // create chain
     await prisma.chains.create({
@@ -102,11 +105,11 @@ async function toChains(chain_name: string, chainId: number) {
     });
     // Deprecated: check parse to chains table success (20240109 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parsedChain", parsedChain);
+    console.log("parse to chains table success", parsedChain);
   }
   // Deprecated: check parse to chains table success (20240109 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("parse to chains table success");
+  console.log("chains exist");
 }
 
 async function toTransactions(
