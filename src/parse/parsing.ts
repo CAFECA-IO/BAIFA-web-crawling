@@ -9,11 +9,9 @@ import { toBlocks, toContracts, toTransactions } from "./parsers";
 import { PrismaClient } from "@prisma/client";
 
 // import chainData
-import { chainData } from "src/parser";
+import { chainData } from "../parser";
 
 const prisma = new PrismaClient();
-
-const chainId = chainData.chain_id;
 
 async function parseDatasByBlockNumber(number: number, web3: any) {
   const block = await getBlockRawData(number);
@@ -22,8 +20,8 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   console.log("block:", block);
   const transactions = await getTransactionRawDatas(number);
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
-  await toBlocks(number, block, chainId);
-  await toContracts(block, transactionReceipts, web3, chainId);
+  await toBlocks(number, block, chainData.chain_id);
+  await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
 }
 
