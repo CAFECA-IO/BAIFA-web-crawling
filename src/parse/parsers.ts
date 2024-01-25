@@ -360,7 +360,10 @@ async function toTokenTransfers(
     });
     // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parse to token_transfers table success", parsedTokenTransfer);
+    console.log(
+      "parse to token_transfers table success (ERC 20)",
+      parsedTokenTransfer,
+    );
     return parsedTokenTransfer;
     // normal transfer
   } else if (
@@ -382,7 +385,10 @@ async function toTokenTransfers(
     });
     // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parse to token_transfers table success", parsedTokenTransfer);
+    console.log(
+      "parse to token_transfers table success (normal)",
+      parsedTokenTransfer,
+    );
     return parsedTokenTransfer;
   }
 }
@@ -475,25 +481,46 @@ async function toCurrencies(parsedTokenTransfer: any, web3: any) {
 // create new currency
 async function createCurrency(parsedTokenTransfer: any, web3: any) {
   const contractAddress = parsedTokenTransfer.currency_id;
-  const contract = new web3.eth.Contract(abi, contractAddress);
-  const newCurrency = {
-    id: parsedTokenTransfer.currency_id,
-    risk_level: "1",
-    price: 0,
-    volume_in_24h: 0,
-    symbol: await contract.methods.symbol().call(),
-    total_amount: await contract.methods.totalSupply().call(),
-    holder_count: 0,
-    total_transfers: 0,
-    chain_id: parsedTokenTransfer.chain_id,
-    name: await contract.methods.name().call(),
-  };
-  await prisma.currencies.create({
-    data: newCurrency,
-  });
-  // Deprecated: check new currency create success (20240123 - Gibbs)
-  // eslint-disable-next-line no-console
-  console.log("create new currency success", newCurrency);
+  if (contractAddress !== "0x0000000000000000000000000000000000000000") {
+    const contract = new web3.eth.Contract(abi, contractAddress);
+    const newCurrency = {
+      id: parsedTokenTransfer.currency_id,
+      risk_level: "1",
+      price: 0,
+      volume_in_24h: 0,
+      symbol: await contract.methods.symbol().call(),
+      total_amount: await contract.methods.totalSupply().call(),
+      holder_count: 0,
+      total_transfers: 0,
+      chain_id: parsedTokenTransfer.chain_id,
+      name: await contract.methods.name().call(),
+    };
+    await prisma.currencies.create({
+      data: newCurrency,
+    });
+    // Deprecated: check new currency create success (20240123 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("create new ERC 20 currency success", newCurrency);
+  } else {
+    const newCurrency = {
+      id: parsedTokenTransfer.currency_id,
+      risk_level: "1",
+      price: 0,
+      volume_in_24h: 0,
+      symbol: "you tell me",
+      total_amount: 0,
+      holder_count: 0,
+      total_transfers: 0,
+      chain_id: parsedTokenTransfer.chain_id,
+      name: "you tell me",
+    };
+    await prisma.currencies.create({
+      data: newCurrency,
+    });
+    // Deprecated: check new currency create success (20240125 - Gibbs)
+    // eslint-disable-next-line no-console
+    console.log("create new normal currency success", newCurrency);
+  }
 }
 
 export { toBlocks, toContracts, toChains, toTransactions };
