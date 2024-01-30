@@ -116,7 +116,6 @@ async function toChains(chainData: any) {
     const parsedChain = {
       id: chainData.chain_id,
       chain_name: chainData.chain_name,
-      chain_icon: chainData.chain_icon,
       symbol: chainData.symbol,
       decimals: chainData.decimals,
       rpc: chainData.rpc,
