@@ -9,7 +9,6 @@ const chainData = {
   symbol: "ISC",
   decimals: 18,
   rpc: "https://isuncoin.baifa.io/",
-  chain_icon: "/currencies/isun.svg",
 };
 
 class Parser {

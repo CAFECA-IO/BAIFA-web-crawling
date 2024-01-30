@@ -17,12 +17,15 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   const block = await getBlockRawData(number);
   // Deprecated: check block (20240109 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("block:", block);
+  // console.log("block:", block);
   const transactions = await getTransactionRawDatas(number);
+  // console.log("transactions:", transactions);
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
+  // console.log("transactionReceipts:", transactionReceipts);
   await toBlocks(number, block, chainData.chain_id);
   await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
+  console.log("parse datas by block number:", number, "success");
 }
 
 async function parsing(web3: any) {
@@ -46,7 +49,7 @@ async function parsing(web3: any) {
       orderBy: { number: "desc" },
     })
   ).number;
-  // console.log("endBlockNumber:", endBlockNumber);
+  console.log("endBlockNumber:", endBlockNumber);
   for (let i = startBlockNumber; i <= endBlockNumber; i++) {
     try {
       await parseDatasByBlockNumber(i, web3);
@@ -61,7 +64,7 @@ async function parsing(web3: any) {
   }
 
   // test
-  // await getDatasByBlockNumber(190353, this.web3);
+  // await parseDatasByBlockNumber(190361, web3);
 }
 
 export { parsing };

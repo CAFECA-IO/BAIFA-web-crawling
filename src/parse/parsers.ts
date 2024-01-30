@@ -4,6 +4,28 @@ import abi from "./abi";
 
 const prisma = new PrismaClient();
 
+// const parseTransacrion = async(raw) => {
+//   /*
+//   1. get transaction detail
+//   2. insert transaction into db
+//   3. update original token balance
+//   3. parse token transfer event
+//   4. for each token transfer event: add currency if not exist
+//   5. for each token transfer event: add token transfer into db
+//   6. for each token transfer event: update token balance
+//   7. update transaction raw status
+//    */
+
+//   const step1Result = await function1();
+//   const step2Result = await function2(step1Result);
+//   const step3Result = await function3(step2Result);
+//   const step4Result = await function4(step3Result);
+//   const step5Result = await function5(step4Result);
+//   const step6Result = await function6(step5Result);
+//   const step7Result = await function7(step6Result);
+
+// }
+
 // parse to blocks table
 async function toBlocks(number: number, block: any, chainId: number) {
   // check if data exist
@@ -122,6 +144,8 @@ async function toTransactions(
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const transactionReceipt = transactionReceipts[i];
+      console.log("transaction", transaction);
+      console.log("transactionReceipt", transactionReceipt);
       // check if transaction exist
       const existingTransaction = await prisma.transactions.findFirst({
         where: { hash: transaction.hash },
@@ -168,13 +192,21 @@ async function toTransactions(
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
         await toAddresses(parsedTransaction);
+        const currency_id = await toCurrencies(
+          parsedTransaction,
+          web3,
+          transactionReceipt,
+        );
         const parsedTokenTransfer = await toTokenTransfers(
           parsedTransaction,
           transaction,
           transactionReceipt,
+          currency_id,
         );
-        await toTokenBalances(parsedTokenTransfer);
-        await toCurrencies(parsedTokenTransfer, web3);
+        console.log("parsedTokenTransfer", parsedTokenTransfer);
+        if (parsedTokenTransfer) {
+          await toTokenBalances(parsedTokenTransfer);
+        }
       }
     }
   }
@@ -331,21 +363,22 @@ async function toTokenTransfers(
   parsedTransaction: any,
   transaction: any,
   transactionReceipt: any,
+  currency_id: string,
 ) {
   // check if transfer exist
   const existingTokenTransfer = await prisma.token_transfers.findFirst({
     where: {
       transaction_hash: parsedTransaction.hash,
-      index: transaction.transaction_index,
+      index: Number(transaction.transaction_index),
     },
   });
   const transactionReceiptLogsTopics =
     transactionReceipt.logs[0]?.topics || null;
   // erc20 transfer
   if (
-    !existingTokenTransfer ||
-    transactionReceiptLogsTopics ||
-    transactionReceiptLogsTopics.length === 3 ||
+    !existingTokenTransfer &&
+    transactionReceiptLogsTopics &&
+    transactionReceiptLogsTopics.length === 3 &&
     transactionReceiptLogsTopics[0] ===
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
   ) {
@@ -354,10 +387,11 @@ async function toTokenTransfers(
       to_address: transactionReceiptLogsTopics[2],
       value: parseInt(transactionReceipt.logs[0]?.data, 16),
       chain_id: parsedTransaction.chain_id,
-      currency_id: parsedTransaction.to_address,
+      currency_id: currency_id,
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
     };
+    console.log("parsedTokenTransfer", parsedTokenTransfer);
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
     });
@@ -370,8 +404,8 @@ async function toTokenTransfers(
     return parsedTokenTransfer;
     // normal transfer
   } else if (
-    !existingTokenTransfer ||
-    !transactionReceiptLogsTopics ||
+    !existingTokenTransfer &&
+    !transactionReceiptLogsTopics &&
     parsedTransaction.type === "0"
   ) {
     const parsedTokenTransfer = {
@@ -379,10 +413,11 @@ async function toTokenTransfers(
       to_address: parsedTransaction.to_address,
       value: parsedTransaction.value,
       chain_id: parsedTransaction.chain_id,
-      currency_id: "0x0000000000000000000000000000000000000000",
+      currency_id: currency_id,
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
     };
+    console.log("parsedTokenTransfer2", parsedTokenTransfer);
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
     });
@@ -462,32 +497,72 @@ async function toTokenBalances(parsedTokenTransfer: any) {
 }
 
 // parse to currencies table
-async function toCurrencies(parsedTokenTransfer: any, web3: any) {
+async function toCurrencies(
+  parsedTransaction: any,
+  web3: any,
+  transactionReceipt: any,
+) {
+  const currency_id = await getCurrencyId(
+    transactionReceipt,
+    parsedTransaction,
+  );
+  console.log("currency_id1", currency_id);
   // create currency
-  const existingCurrency = await prisma.currencies.findFirst({
-    where: { id: parsedTokenTransfer.currency_id },
-  });
-  if (!existingCurrency) {
-    await createCurrency(parsedTokenTransfer, web3);
-  }
-  // update currency total_transfers
-  await prisma.currencies.update({
-    where: { id: parsedTokenTransfer.currency_id },
-    data: {
-      total_transfers: {
-        increment: 1,
+  if (currency_id) {
+    const existingCurrency = await prisma.currencies.findFirst({
+      where: { id: currency_id },
+    });
+    if (!existingCurrency) {
+      await createCurrency(currency_id, web3, parsedTransaction);
+    }
+    // update currency total_transfers
+    await prisma.currencies.update({
+      where: { id: currency_id },
+      data: {
+        total_transfers: {
+          increment: 1,
+        },
       },
-    },
-  });
+    });
+  }
+  return currency_id;
+}
+
+// get currency id
+async function getCurrencyId(transactionReceipt: any, parsedTransaction: any) {
+  const transactionReceiptLogsTopics =
+    transactionReceipt.logs[0]?.topics || null;
+  console.log("transactionReceiptLogsTopics", transactionReceiptLogsTopics);
+  // erc20 transfer
+  if (
+    transactionReceiptLogsTopics &&
+    transactionReceiptLogsTopics?.length === 3 &&
+    transactionReceiptLogsTopics[0] ===
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+  ) {
+    return parsedTransaction.to_address;
+    // normal transfer
+  } else if (!transactionReceiptLogsTopics && parsedTransaction.type === "0") {
+    return "0x0000000000000000000000000000000000000000";
+  } else {
+  }
 }
 
 // create new currency
-async function createCurrency(parsedTokenTransfer: any, web3: any) {
-  const contractAddress = parsedTokenTransfer.currency_id;
-  if (contractAddress !== "0x0000000000000000000000000000000000000000") {
+async function createCurrency(
+  currency_id: string,
+  web3: any,
+  parsedTransaction: any,
+) {
+  const contractAddress = currency_id;
+  console.log("contractAddress", contractAddress);
+  if (
+    contractAddress &&
+    contractAddress !== "0x0000000000000000000000000000000000000000"
+  ) {
     const contract = new web3.eth.Contract(abi, contractAddress);
     const newCurrency = {
-      id: parsedTokenTransfer.currency_id,
+      id: currency_id,
       risk_level: "1",
       price: 0,
       volume_in_24h: 0,
@@ -495,7 +570,7 @@ async function createCurrency(parsedTokenTransfer: any, web3: any) {
       total_amount: await contract.methods.totalSupply().call(),
       holder_count: 0,
       total_transfers: 0,
-      chain_id: parsedTokenTransfer.chain_id,
+      chain_id: parsedTransaction.chain_id,
       name: await contract.methods.name().call(),
     };
     await prisma.currencies.create({
@@ -504,9 +579,12 @@ async function createCurrency(parsedTokenTransfer: any, web3: any) {
     // Deprecated: check new currency create success (20240123 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("create new ERC 20 currency success", newCurrency);
-  } else {
+  } else if (
+    contractAddress &&
+    contractAddress === "0x0000000000000000000000000000000000000000"
+  ) {
     const newCurrency = {
-      id: parsedTokenTransfer.currency_id,
+      id: currency_id,
       risk_level: "1",
       price: 0,
       volume_in_24h: 0,
@@ -514,7 +592,7 @@ async function createCurrency(parsedTokenTransfer: any, web3: any) {
       total_amount: 0,
       holder_count: 0,
       total_transfers: 0,
-      chain_id: parsedTokenTransfer.chain_id,
+      chain_id: parsedTransaction.chain_id,
       name: "you tell me",
     };
     await prisma.currencies.create({

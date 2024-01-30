@@ -90,8 +90,7 @@ model contracts {
   source_code         String?
   creator_address     String?
   created_timestamp   DateTime?
-  chains              chains? @relation(fields: [chain_id], references: [id])
-  public_tags         public_tags? @relation(fields: [contract_address], references: [target])       
+  chains              chains? @relation(fields: [chain_id], references: [id])     
 }
 
 model public_tags {
@@ -99,8 +98,6 @@ model public_tags {
   name                String?
   target              String? @unique
   target_type         String?
-  contracts           contracts[]
-  addresses           addresses[] @relation("public_tags")   
 }
 
 model evidences {
@@ -119,7 +116,6 @@ model evidences {
 model chains {
   id                  Int      @id
   chain_name          String?
-  chain_icon          String?
   symbol              String?
   decimals            Int?
   rpc                 String?
@@ -139,7 +135,7 @@ model transactions {
   id                  Int      @id @default(autoincrement())
   chain_id            Int? 
   created_timestamp   DateTime?
-  hash                String?
+  hash                String? @unique
   type                String?
   status              String?
   block_hash          String? 
@@ -150,7 +146,8 @@ model transactions {
   fee                 BigInt?
   related_addresses   String[]
   chains              chains? @relation(fields: [chain_id], references: [id])
-  blocks              blocks? @relation(fields: [block_hash], references: [hash])       
+  blocks              blocks? @relation(fields: [block_hash], references: [hash])
+  review_datas        review_datas[]       
 }
 
 model black_lists {
@@ -171,7 +168,8 @@ model review_datas {
   content             String?
   stars               Int?
   author_address      String?
-  addresses           addresses[] @relation("review_datas")
+  addresses           addresses? @relation(fields:[target], references: [address], map: "review_datas_addresses_fkey")
+  transactions        transactions? @relation(fields:[target], references: [hash], map: "review_datas_transactions_fkey")
 }
 
 model red_flags {
@@ -183,6 +181,8 @@ model red_flags {
   symbol              String?
   related_addresses   String[]
   related_transactions String[]
+  currency_id         String?
+  currencies          currencies? @relation(fields: [currency_id], references: [id])                
   chains               chains? @relation(fields: [chain_id], references: [id])                
 }
 
@@ -238,6 +238,7 @@ model currencies {
   chain_id            Int?
   name                String?
   token_transfers     token_transfers[]
+  red_flags           red_flags[]
   token_balances      token_balances?
   chains              chains? @relation(fields: [chain_id], references: [id])           
 }
@@ -252,8 +253,7 @@ model addresses {
   risk_records        risk_records[]
   black_lists         black_lists?
   chains              chains? @relation(fields: [chain_id], references: [id])
-  public_tags         public_tags? @relation("public_tags", fields: [address], references: [target], map: "public_tags_fkey")
-  review_datas        review_datas? @relation("review_datas", fields: [address], references: [target], map: "review_datas_fkey")     
+  review_datas        review_datas[]    
 }
 
 model risk_records {
