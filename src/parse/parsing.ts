@@ -43,28 +43,28 @@ async function parsing(web3: any) {
       })
     )?.number || 0;
   // console.log("startBlockNumber:", startBlockNumber);
-  const endBlockNumber = (
-    await prisma.block_raw.findFirst({
-      select: { number: true },
-      orderBy: { number: "desc" },
-    })
-  ).number;
-  console.log("endBlockNumber:", endBlockNumber);
-  for (let i = startBlockNumber; i <= endBlockNumber; i++) {
-    try {
-      await parseDatasByBlockNumber(i, web3);
-      // Deprecated: print block number of parse datas (20240118 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log(`parse datas by block number: ${i} success`);
-    } catch (error) {
-      // Deprecated: print error block number (20240118 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log("error block number:", i, error);
-    }
-  }
+  // const endBlockNumber = (
+  //   await prisma.block_raw.findFirst({
+  //     select: { number: true },
+  //     orderBy: { number: "desc" },
+  //   })
+  // ).number;
+  // console.log("endBlockNumber:", endBlockNumber);
+  // for (let i = startBlockNumber; i <= endBlockNumber; i++) {
+  //   try {
+  //     await parseDatasByBlockNumber(i, web3);
+  //     // Deprecated: print block number of parse datas (20240118 - Gibbs)
+  //     // eslint-disable-next-line no-console
+  //     console.log(`parse datas by block number: ${i} success`);
+  //   } catch (error) {
+  //     // Deprecated: print error block number (20240118 - Gibbs)
+  //     // eslint-disable-next-line no-console
+  //     console.log("error block number:", i, error);
+  //   }
+  // }
 
   // test
-  // await parseDatasByBlockNumber(190361, web3);
+  await parseDatasByBlockNumber(1047, web3);
 }
 
 export { parsing };

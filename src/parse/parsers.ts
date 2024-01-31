@@ -37,7 +37,7 @@ async function toBlocks(number: number, block: any, chainId: number) {
       chain_id: chainId,
       symbol: "ISC",
       burnt_fees: 0,
-      created_timestamp: new Date(block.timestamp * 1000),
+      created_timestamp: Number(block.timestamp),
       miner: block.miner,
       reward: (
         Number(block.base_fee_per_gas) * Number(block.gas_used) +
@@ -89,7 +89,7 @@ async function toContracts(
           chain_id: chainId,
           contract_address: contractAddress,
           creator_address: transactionReceipts[i].from,
-          created_timestamp: new Date(block.timestamp * 1000),
+          created_timestamp: Number(block.timestamp),
           source_code: await web3.eth.getCode(contractAddress),
         };
         await prisma.contracts.create({
@@ -152,7 +152,7 @@ async function toTransactions(
       if (!existingTransaction) {
         const parsedTransaction = {
           chain_id: Number(transaction.chain_id),
-          created_timestamp: new Date(block.timestamp * 1000),
+          created_timestamp: Number(block.timestamp),
           hash: transaction.hash,
           type: await type(transaction, transactionReceipt),
           // 0 pending, 1 success, 2 fail
@@ -161,7 +161,7 @@ async function toTransactions(
           from_address: transaction.from,
           to_address: transaction.to,
           evidence_id: await evidenceId(transaction, transactionReceipt, block),
-          value: Number(transaction.value),
+          value: transaction.value,
           fee: Number(transaction.gas) * Number(transaction.gas_price),
           // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address, 不重複
           related_addresses: [
@@ -174,6 +174,8 @@ async function toTransactions(
         };
         // Deprecated: check parsedTransaction data (20240115 - Gibbs)
         // eslint-disable-next-line no-console
+        console.log("type", typeof (transaction.value), transaction.value);
+        console.log("value", typeof(parsedTransaction.value), parsedTransaction.value);
         console.log("parsedTransaction", parsedTransaction);
         await prisma.transactions.create({
           data: parsedTransaction,
@@ -288,7 +290,7 @@ async function toEvidences(
       // events: nft, erc20, create contract, call contract
       evidence_id: evidenceId,
       chain_id: Number(transaction.chain_id),
-      created_timestamp: new Date(block.timestamp * 1000),
+      created_timestamp: Number(block.timestamp),
       contract_address: "0x" + evidenceId.substring(0, 40),
       state: "public",
       content: "a json content",
@@ -486,7 +488,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
-        value: existingTo.value + parsedTokenTransfer.value,
+        value: Number(existingTo.value + parsedTokenTransfer.value),
       },
     });
   }
