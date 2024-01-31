@@ -27,7 +27,12 @@ const prisma = new PrismaClient();
 // }
 
 // parse to blocks table
-async function toBlocks(number: number, block: any, chainId: number) {
+async function toBlocks(
+  number: number,
+  block: any,
+  chainId: number,
+  chainData: any,
+) {
   // check if data exist
   const existingBlock = await prisma.blocks.findUnique({
     where: { number: number },
@@ -35,8 +40,8 @@ async function toBlocks(number: number, block: any, chainId: number) {
   if (!existingBlock) {
     const parsedBlock = {
       chain_id: chainId,
-      symbol: "ISC",
-      burnt_fees: 0,
+      symbol: chainData.symbol,
+      burnt_fees: block.burnt_fees.toString(),
       created_timestamp: Number(block.timestamp),
       miner: block.miner,
       reward: (
@@ -162,7 +167,9 @@ async function toTransactions(
           to_address: transaction.to,
           evidence_id: await evidenceId(transaction, transactionReceipt, block),
           value: transaction.value,
-          fee: Number(transaction.gas) * Number(transaction.gas_price),
+          fee: (
+            Number(transaction.gas) * Number(transaction.gas_price)
+          ).toString(),
           // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address, 不重複
           related_addresses: [
             ...new Set([
@@ -386,7 +393,7 @@ async function toTokenTransfers(
     const parsedTokenTransfer = {
       from_address: transactionReceiptLogsTopics[1],
       to_address: transactionReceiptLogsTopics[2],
-      value: parseInt(transactionReceipt.logs[0]?.data, 16),
+      value: parseInt(transactionReceipt.logs[0]?.data, 16).toString(),
       chain_id: parsedTransaction.chain_id,
       currency_id: currency_id,
       transaction_hash: parsedTransaction.hash,
@@ -445,7 +452,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     const parsedFromTokenBalance = {
       address: parsedTokenTransfer.from_address,
       currency_id: parsedTokenTransfer.currency_id,
-      value: parsedTokenTransfer.value * -1,
+      value: (Number(parsedTokenTransfer.value) * -1).toString(),
       chain_id: parsedTokenTransfer.chain_id,
     };
     await prisma.token_balances.create({
@@ -459,7 +466,9 @@ async function toTokenBalances(parsedTokenTransfer: any) {
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
-        value: existingFrom.value - parsedTokenTransfer.value,
+        value: (
+          Number(existingFrom.value) - Number(parsedTokenTransfer.value)
+        ).toString(),
       },
     });
   }
@@ -488,7 +497,9 @@ async function toTokenBalances(parsedTokenTransfer: any) {
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
-        value: Number(existingTo.value + parsedTokenTransfer.value),
+        value: (
+          Number(existingTo.value) + Number(parsedTokenTransfer.value)
+        ).toString(),
       },
     });
   }
@@ -566,9 +577,9 @@ async function createCurrency(
       id: currency_id,
       risk_level: "1",
       price: 0,
-      volume_in_24h: 0,
+      volume_in_24h: "0",
       symbol: await contract.methods.symbol().call(),
-      total_amount: await contract.methods.totalSupply().call(),
+      total_amount: (await contract.methods.totalSupply().call()).toString(),
       holder_count: 0,
       total_transfers: 0,
       chain_id: parsedTransaction.chain_id,
@@ -588,9 +599,9 @@ async function createCurrency(
       id: currency_id,
       risk_level: "1",
       price: 0,
-      volume_in_24h: 0,
+      volume_in_24h: "0",
       symbol: "you tell me",
-      total_amount: 0,
+      total_amount: "0",
       holder_count: 0,
       total_transfers: 0,
       chain_id: parsedTransaction.chain_id,

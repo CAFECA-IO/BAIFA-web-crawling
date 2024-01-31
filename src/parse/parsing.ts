@@ -22,7 +22,7 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   // console.log("transactions:", transactions);
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
   // console.log("transactionReceipts:", transactionReceipts);
-  await toBlocks(number, block, chainData.chain_id);
+  await toBlocks(number, block, chainData.chain_id, chainData);
   await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
   console.log("parse datas by block number:", number, "success");

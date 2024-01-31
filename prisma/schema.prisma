@@ -142,8 +142,8 @@ model transactions {
   from_address        String?
   to_address          String?
   evidence_id         String?
-  value               BigInt?
-  fee                 BigInt?
+  value               String?
+  fee                 String?
   related_addresses   String[]
   chains              chains? @relation(fields: [chain_id], references: [id])
   blocks              blocks? @relation(fields: [block_hash], references: [hash])
@@ -177,7 +177,7 @@ model red_flags {
   chain_id            Int? 
   created_timestamp   Int?
   red_flag_type       String?
-  total_amount        Int?
+  total_amount        String?
   symbol              String?
   related_addresses   String[]
   related_transactions String[]
@@ -196,7 +196,7 @@ model blocks {
   symbol              String?
   transaction_count   Int?
   parent_hash         String?
-  burnt_fees          Int?   
+  burnt_fees          String?   
   hash                String? @unique
   number              Int? @unique
   transactions        transactions[]
@@ -206,7 +206,7 @@ model blocks {
 model token_balances {
   id                  Int      @id @default(autoincrement())
   address             String?
-  value               BigInt?
+  value               String?
   chain_id            Int?
   currency_id         String? @unique
   chains              chains? @relation(fields: [chain_id], references: [id])
@@ -217,7 +217,7 @@ model token_transfers {
   id                  Int      @id @default(autoincrement())
   from_address        String?
   to_address          String?
-  value               BigInt?
+  value               String?
   chain_id            Int?
   currency_id         String? 
   transaction_hash    String?
@@ -230,9 +230,9 @@ model currencies {
   id                  String      @id 
   risk_level          String?
   price               Int?
-  volume_in_24h       Int?
+  volume_in_24h       String?
   symbol              String?
-  total_amount        Int?
+  total_amount        String?
   holder_count        Int?
   total_transfers     Int?
   chain_id            Int?
