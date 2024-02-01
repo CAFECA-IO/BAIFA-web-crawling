@@ -1,7 +1,8 @@
 import Web3 from "web3";
 import { Logger } from "@nestjs/common";
 import { parsing } from "./parse/parsing";
-import { toChains } from "./parse/parsers";
+import { toChains, toCodes } from "./parse/parsers";
+import codesData from "./parse/codes";
 
 const chainData = {
   chain_id: 8017,
@@ -25,6 +26,7 @@ class Parser {
   async start() {
     try {
       await toChains(chainData);
+      await toCodes(codesData);
       while (true) {
         // Info: (20240118 - Gibbs) conduct every 5 seconds
         await new Promise((resolve) => setTimeout(resolve, 5000));

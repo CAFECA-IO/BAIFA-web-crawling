@@ -640,4 +640,18 @@ async function createCurrency(
   }
 }
 
-export { toBlocks, toContracts, toChains, toTransactions };
+async function toCodes(codesData: any) {
+  const codesCount = await prisma.codes.count();
+  if (codesCount === 0) {
+    for (const code of codesData) {
+      await prisma.codes.create({
+        data: code,
+      });
+    }
+  }
+  // Deprecated: check codes table created (20240201 - Gibbs)
+  // eslint-disable-next-line no-console
+  console.log("codes table created !");
+}
+
+export { toBlocks, toContracts, toChains, toTransactions, toCodes };
