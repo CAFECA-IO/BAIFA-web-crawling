@@ -25,6 +25,8 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   await toBlocks(number, block, chainData.chain_id, chainData);
   await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
+  // Deprecated: print block number of parse datas (20240131 - Gibbs)
+  // eslint-disable-next-line no-console
   console.log("parse datas by block number:", number, "success");
 }
 
@@ -35,13 +37,13 @@ async function parsing(web3: any) {
     3. get datas from startBlockNumber to endBlockNumber
     4. error: record error block number
     */
-  const startBlockNumber =
-    (
-      await prisma.blocks.findFirst({
-        select: { number: true },
-        orderBy: { number: "desc" },
-      })
-    )?.number || 0;
+  // const startBlockNumber =
+  //   (
+  //     await prisma.blocks.findFirst({
+  //       select: { number: true },
+  //       orderBy: { number: "desc" },
+  //     })
+  //   )?.number || 0;
   // console.log("startBlockNumber:", startBlockNumber);
   // const endBlockNumber = (
   //   await prisma.block_raw.findFirst({
@@ -64,7 +66,7 @@ async function parsing(web3: any) {
   // }
 
   // test
-  await parseDatasByBlockNumber(1047, web3);
+  await parseDatasByBlockNumber(81518, web3);
 }
 
 export { parsing };

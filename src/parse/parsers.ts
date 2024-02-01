@@ -148,7 +148,11 @@ async function toTransactions(
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       const transactionReceipt = transactionReceipts[i];
+      // Deprecated: check transaction data (20240131 - Gibbs)
+      // eslint-disable-next-line no-console
       console.log("transaction", transaction);
+      // Deprecated: check transactionReceipt data (20240131 - Gibbs)
+      // eslint-disable-next-line no-console
       console.log("transactionReceipt", transactionReceipt);
       // check if transaction exist
       const existingTransaction = await prisma.transactions.findFirst({
@@ -179,10 +183,18 @@ async function toTransactions(
             ]),
           ],
         };
+        // Deprecated: check transaction value (20240131 - Gibbs)
+        // eslint-disable-next-line no-console
+        console.log("type", typeof transaction.value, transaction.value);
+        // Deprecated: check parsedTransaction value (20240131 - Gibbs)
+        // eslint-disable-next-line no-console
+        console.log(
+          "value",
+          typeof parsedTransaction.value,
+          parsedTransaction.value,
+        );
         // Deprecated: check parsedTransaction data (20240115 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("type", typeof (transaction.value), transaction.value);
-        console.log("value", typeof(parsedTransaction.value), parsedTransaction.value);
         console.log("parsedTransaction", parsedTransaction);
         await prisma.transactions.create({
           data: parsedTransaction,
@@ -211,6 +223,8 @@ async function toTransactions(
           transactionReceipt,
           currency_id,
         );
+        // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
+        // eslint-disable-next-line no-console
         console.log("parsedTokenTransfer", parsedTokenTransfer);
         if (parsedTokenTransfer) {
           await toTokenBalances(parsedTokenTransfer);
@@ -399,6 +413,8 @@ async function toTokenTransfers(
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
     };
+    // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
+    // eslint-disable-next-line no-console
     console.log("parsedTokenTransfer", parsedTokenTransfer);
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
@@ -425,6 +441,8 @@ async function toTokenTransfers(
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
     };
+    // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
+    // eslint-disable-next-line no-console
     console.log("parsedTokenTransfer2", parsedTokenTransfer);
     await prisma.token_transfers.create({
       data: parsedTokenTransfer,
@@ -518,6 +536,8 @@ async function toCurrencies(
     transactionReceipt,
     parsedTransaction,
   );
+  // Deprecated: check currency_id (20240131 - Gibbs)
+  // eslint-disable-next-line no-console
   console.log("currency_id1", currency_id);
   // create currency
   if (currency_id) {
@@ -544,6 +564,8 @@ async function toCurrencies(
 async function getCurrencyId(transactionReceipt: any, parsedTransaction: any) {
   const transactionReceiptLogsTopics =
     transactionReceipt.logs[0]?.topics || null;
+  // Deprecated: check transactionReceiptLogsTopics data (20240131 - Gibbs)
+  // eslint-disable-next-line no-console
   console.log("transactionReceiptLogsTopics", transactionReceiptLogsTopics);
   // erc20 transfer
   if (
@@ -567,6 +589,8 @@ async function createCurrency(
   parsedTransaction: any,
 ) {
   const contractAddress = currency_id;
+  // Deprecated: check contractAddress (20240131 - Gibbs)
+  // eslint-disable-next-line no-console
   console.log("contractAddress", contractAddress);
   if (
     contractAddress &&

@@ -208,7 +208,7 @@ model token_balances {
   address             String?
   value               String?
   chain_id            Int?
-  currency_id         String? @unique
+  currency_id         String? 
   chains              chains? @relation(fields: [chain_id], references: [id])
   currencies          currencies? @relation(fields: [currency_id], references: [id])  
 }
@@ -239,7 +239,7 @@ model currencies {
   name                String?
   token_transfers     token_transfers[]
   red_flags           red_flags[]
-  token_balances      token_balances?
+  token_balances      token_balances[]
   chains              chains? @relation(fields: [chain_id], references: [id])           
 }
 
