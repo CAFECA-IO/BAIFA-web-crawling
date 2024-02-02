@@ -553,15 +553,17 @@ async function toCurrencies(
     if (!existingCurrency) {
       await createCurrency(currency_id, web3, parsedTransaction);
     }
-    // update currency total_transfers
-    await prisma.currencies.update({
-      where: { id: currency_id },
-      data: {
-        total_transfers: {
-          increment: 1,
+    if (parsedTransaction.value !== "0") {
+      // update currency total_transfers
+      await prisma.currencies.update({
+        where: { id: currency_id },
+        data: {
+          total_transfers: {
+            increment: 1,
+          },
         },
-      },
-    });
+      });
+    }
   }
   return currency_id;
 }
