@@ -225,8 +225,8 @@ async function toTransactions(
         );
         // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("parsedTokenTransfer", parsedTokenTransfer);
-        if (parsedTokenTransfer) {
+        console.log("output of parsedTokenTransfer", parsedTokenTransfer);
+        if (parsedTokenTransfer && parsedTokenTransfer.value !== "0") {
           await toTokenBalances(parsedTokenTransfer);
         }
       }
@@ -415,16 +415,18 @@ async function toTokenTransfers(
     };
     // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parsedTokenTransfer", parsedTokenTransfer);
-    await prisma.token_transfers.create({
-      data: parsedTokenTransfer,
-    });
-    // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
-    // eslint-disable-next-line no-console
-    console.log(
-      "parse to token_transfers table success (ERC 20)",
-      parsedTokenTransfer,
-    );
+    console.log("parsedTokenTransfer - erc20", parsedTokenTransfer);
+    if (parsedTokenTransfer.value !== "0") {
+      await prisma.token_transfers.create({
+        data: parsedTokenTransfer,
+      });
+      // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log(
+        "parse to token_transfers table success (ERC 20)",
+        parsedTokenTransfer,
+      );
+    }
     return parsedTokenTransfer;
     // normal transfer
   } else if (
@@ -443,16 +445,18 @@ async function toTokenTransfers(
     };
     // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parsedTokenTransfer2", parsedTokenTransfer);
-    await prisma.token_transfers.create({
-      data: parsedTokenTransfer,
-    });
-    // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
-    // eslint-disable-next-line no-console
-    console.log(
-      "parse to token_transfers table success (normal)",
-      parsedTokenTransfer,
-    );
+    console.log("parsedTokenTransfer - normal", parsedTokenTransfer);
+    if (parsedTokenTransfer.value !== "0") {
+      await prisma.token_transfers.create({
+        data: parsedTokenTransfer,
+      });
+      // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log(
+        "parse to token_transfers table success (normal)",
+        parsedTokenTransfer,
+      );
+    }
     return parsedTokenTransfer;
   }
 }
