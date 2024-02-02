@@ -222,6 +222,7 @@ model token_transfers {
   currency_id         String? 
   transaction_hash    String?
   index               Int?
+  created_timestamp   Int?
   chains              chains? @relation(fields: [chain_id], references: [id])
   currencies          currencies? @relation(fields: [currency_id], references: [id])      
 }

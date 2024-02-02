@@ -412,6 +412,7 @@ async function toTokenTransfers(
       currency_id: currency_id,
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
+      created_timestamp: parsedTransaction.created_timestamp,
     };
     // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
     // eslint-disable-next-line no-console
@@ -442,6 +443,7 @@ async function toTokenTransfers(
       currency_id: currency_id,
       transaction_hash: parsedTransaction.hash,
       index: Number(transaction.transaction_index),
+      created_timestamp: parsedTransaction.created_timestamp,
     };
     // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
     // eslint-disable-next-line no-console
