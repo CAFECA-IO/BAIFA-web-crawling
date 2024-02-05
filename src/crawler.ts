@@ -13,7 +13,7 @@ class Crawler {
     // Deprecated: check crawler init (20231225 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("Crawler constructor");
-    // Connect to the iSunCoin node
+    // Info: (20240111 - Gibbs) Connect to the iSunCoin node
     this.web3 = new Web3("https://isuncoin.baifa.io/");
     this.logger = new Logger();
   }
