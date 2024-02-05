@@ -313,7 +313,7 @@ async function toEvidences(
       chain_id: Number(transaction.chain_id),
       created_timestamp: Number(block.timestamp),
       contract_address: "0x" + evidenceId.substring(0, 40),
-      state: "public",
+      state: "0",
       content: "a json content",
       creator_address: transactionReceipt.from,
       token_id: evidenceId.substring(40),
