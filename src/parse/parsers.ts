@@ -53,6 +53,7 @@ async function toBlocks(
       parent_hash: block.parent_hash,
       number: Number(block.number),
       hash: block.hash,
+      extra_data: block.extra_data,
     };
     await prisma.blocks.create({
       data: parsedBlock,

@@ -199,6 +199,7 @@ model blocks {
   burnt_fees          String?   
   hash                String? @unique
   number              Int? @unique
+  extra_data          String?
   transactions        transactions[]
   chains              chains? @relation(fields: [chain_id], references: [id])     
 }
