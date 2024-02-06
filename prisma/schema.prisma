@@ -273,3 +273,13 @@ model codes {
   value               Int?
   meaning             String?
 }
+
+model balance_versions {
+  id                  Int      @id @default(autoincrement())
+  chain_id            Int? 
+  address             String?
+  currency            String?
+  modify              Int?
+  created_timestamp   Int?
+  transaction_hash    String?
+}
