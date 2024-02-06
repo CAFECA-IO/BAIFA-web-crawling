@@ -466,16 +466,19 @@ async function toTokenTransfers(
 
 // parse to token_balances table
 async function toTokenBalances(parsedTokenTransfer: any) {
+  // eslint-disable-next-line prettier/prettier
+  const parsedTokenTransferFrom = parsedTokenTransfer.from_address.substr(-40, 40);
+  const parsedTokenTransferTo = parsedTokenTransfer.to_address.substr(-40, 40);
   // check if from_address exist
   const existingFrom = await prisma.token_balances.findFirst({
     where: {
-      address: parsedTokenTransfer.from_address,
+      address: parsedTokenTransferFrom,
       currency_id: parsedTokenTransfer.currency_id,
     },
   });
   if (!existingFrom) {
     const parsedFromTokenBalance = {
-      address: parsedTokenTransfer.from_address,
+      address: parsedTokenTransferFrom,
       currency_id: parsedTokenTransfer.currency_id,
       value: (Number(parsedTokenTransfer.value) * -1).toString(),
       chain_id: parsedTokenTransfer.chain_id,
@@ -487,7 +490,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     // update token_balance
     await prisma.token_balances.updateMany({
       where: {
-        address: parsedTokenTransfer.from_address,
+        address: parsedTokenTransferFrom,
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
@@ -500,13 +503,13 @@ async function toTokenBalances(parsedTokenTransfer: any) {
   // check if to_address exist
   const existingTo = await prisma.token_balances.findFirst({
     where: {
-      address: parsedTokenTransfer.to_address,
+      address: parsedTokenTransferTo,
       currency_id: parsedTokenTransfer.currency_id,
     },
   });
   if (!existingTo) {
     const parsedToTokenBalance = {
-      address: parsedTokenTransfer.to_address,
+      address: parsedTokenTransferTo,
       currency_id: parsedTokenTransfer.currency_id,
       value: parsedTokenTransfer.value,
       chain_id: parsedTokenTransfer.chain_id,
@@ -518,7 +521,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     // update token_balance
     await prisma.token_balances.updateMany({
       where: {
-        address: parsedTokenTransfer.to_address,
+        address: parsedTokenTransferTo,
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
