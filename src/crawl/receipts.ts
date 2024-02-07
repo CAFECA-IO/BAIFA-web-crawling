@@ -26,7 +26,7 @@ async function getTransactionReceiptAndSave(
       gas_used: transactionReceipt.gasUsed.toString(),
       contract_address:
         transactionReceipt.contractAddress?.toString() || "null",
-      logs: transactionReceipt.logs.toString(),
+      logs: transactionReceipt.logs,
       logs_bloom: transactionReceipt.logsBloom.toString(),
       status: transactionReceipt.status.toString(),
       type: transactionReceipt.type.toString(),

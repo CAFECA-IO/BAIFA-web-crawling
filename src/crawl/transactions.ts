@@ -116,7 +116,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
       max_fee_per_gas: transaction.maxFeePerGas.toString(),
       max_priority_fee_per_gas: transaction.maxPriorityFeePerGas.toString(),
       type: transaction.type.toString(),
-      access_list: transaction.accessList.toString() || "",
+      access_list: transaction.accessList,
       chain_id: transaction.chainId.toString(),
     };
     // Deprecated: print need-to-save transaction (20231225 - Gibbs)
