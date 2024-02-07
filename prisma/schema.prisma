@@ -279,7 +279,8 @@ model balance_versions {
   chain_id            Int? 
   address             String?
   currency            String?
-  modify              Int?
+  modify              String?
+  snapshot            String?
   created_timestamp   Int?
   transaction_hash    String?
 }

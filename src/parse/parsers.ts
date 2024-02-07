@@ -63,10 +63,28 @@ async function toBlocks(
       where: { number: number },
       data: { parse_finished: true },
     });
+    // block to balance_versions table
+    await BlockToBalanceVersions(parsedBlock);
     // Deprecated: check parse to blocks table success (20240105 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to blocks table success", parsedBlock);
   }
+}
+
+// block to balance_versions table
+async function BlockToBalanceVersions(parsedBlock: any) {
+  await prisma.balance_versions.create({
+    data: {
+      chain_id: parsedBlock.chain_id,
+      created_timestamp: parsedBlock.created_timestamp,
+      address: parsedBlock.miner,
+      modify: parsedBlock.reward,
+      currency: "0x0000000000000000000000000000000000000000",
+    },
+  });
+  // Deprecated: check parse to balance_versions table success (20240206 - Gibbs)
+  // eslint-disable-next-line no-console
+  console.log("parse to balance_versions table success");
 }
 
 // parse to contracts table
@@ -212,25 +230,329 @@ async function toTransactions(
         // Deprecated: check parse to transactions table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
-        await toAddresses(parsedTransaction);
-        const currency_id = await toCurrencies(
+        await createCurrencyInitial(web3, parsedTransaction);
+        await updateTotalTransfers(
           parsedTransaction,
-          web3,
-          transactionReceipt,
+          "0x0000000000000000000000000000000000000000",
         );
-        const parsedTokenTransfer = await toTokenTransfers(
+        await createBalanceVersionsForTransaction(parsedTransaction);
+        await toAddresses(parsedTransaction);
+        // const currency_id = await toCurrencies(
+        //   parsedTransaction,
+        //   web3,
+        //   transactionReceipt,
+        // );
+        await toTokenTransfers(parsedTransaction);
+        await parsedTransactionLogs(
           parsedTransaction,
-          transaction,
           transactionReceipt,
-          currency_id,
+          web3,
         );
         // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("output of parsedTokenTransfer", parsedTokenTransfer);
-        if (parsedTokenTransfer && parsedTokenTransfer.value !== "0") {
-          await toTokenBalances(parsedTokenTransfer);
-        }
+        // console.log("output of parsedTokenTransfer", parsedTokenTransfer);
+        // if (parsedTokenTransfer && parsedTokenTransfer.value !== "0") {
+        //   await toTokenBalances(parsedTokenTransfer);
+        // }
       }
+      // update token balances
+      // todo: tokenbalance for transacrtion / transaction logs
+      // await updateTokenBalances(transaction, web3);
+    }
+  }
+}
+
+// update token balances
+// await function updateTokenBalances(transaction, web3) 
+
+// parse each log data of a transaction data
+async function parsedTransactionLogs(
+  parsedTransaction: any,
+  transactionReceipt: any,
+  web3: any,
+) {
+  const transactionLogs = transactionReceipt.logs;
+  if (transactionLogs.length > 0) {
+    for (let i = 0; i < transactionLogs.length; i++) {
+      const transactionLog = transactionLogs[i];
+      // ERC20 3 events (transfer, minted, burned)
+      // create currency if not exist
+      const currency_id = await toCurrencies(
+        parsedTransaction,
+        web3,
+        transactionReceipt,
+        transactionLog,
+      );
+      let parsedTransactionLogsToTransfers;
+      // transfer
+      if (
+        transactionLog.topics[0] ===
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+      ) {
+        parsedTransactionLogsToTransfers = {
+          from_address: "0x" + transactionLog.topics[1].substr(-40),
+          to_address: "0x" + transactionLog.topics[2].substr(-40),
+          value: BigInt(transactionLog.data).toString(),
+          chain_id: parsedTransaction.chain_id,
+          currency_id: currency_id,
+          transaction_hash: parsedTransaction.hash,
+          index: i + 1,
+          created_timestamp: parsedTransaction.created_timestamp,
+        };
+        // minted
+      } else if (
+        transactionLog.topics[0] ===
+        "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0"
+      ) {
+        parsedTransactionLogsToTransfers = {
+          to_address: "0x" + transactionLog.topics[1].substr(-40),
+          value: BigInt("0x" + transactionLog.data.slice(-64)).toString(),
+          chain_id: parsedTransaction.chain_id,
+          currency_id: currency_id,
+          transaction_hash: parsedTransaction.hash,
+          index: i + 1,
+          created_timestamp: parsedTransaction.created_timestamp,
+        };
+        // burned
+      } else if (
+        transactionLog.topics[0] ===
+        "0xa78a9be3a7b862d26933ad85fb11d80ef66b8f972d7cbba06621d583943a4098"
+      ) {
+        parsedTransactionLogsToTransfers = {
+          from_address: "0x" + transactionLog.topics[2].substr(-40),
+          value: BigInt(transactionLog.data.slice(0, 66)).toString(),
+          chain_id: parsedTransaction.chain_id,
+          currency_id: currency_id,
+          transaction_hash: parsedTransaction.hash,
+          index: i + 1,
+          created_timestamp: parsedTransaction.created_timestamp,
+        };
+      }
+      // check if currency exist
+      const existingCurrency = await prisma.currencies.findFirst({
+        where: {
+          id: currency_id,
+        },
+      });
+      if (!existingCurrency) {
+        await createCurrency(currency_id, web3, parsedTransaction);
+      }
+      // update balance_versions table
+      await createBalanceVersionsForTransactionLog(
+        parsedTransactionLogsToTransfers,
+      );
+      // update token transfers table
+      await TransactionLogToTokenTransfers(parsedTransactionLogsToTransfers);
+      // update total transfers
+      await updateTotalTransfers(parsedTransactionLogsToTransfers, currency_id);
+    }
+  }
+}
+
+// update token transfers table for each transaction log
+async function TransactionLogToTokenTransfers(
+  parsedTransactionLogsToTransfers: any,
+) {
+  // check if transaction log exist
+  const existingTokenTransfer = await prisma.token_transfers.findFirst({
+    where: {
+      transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
+      index: parsedTransactionLogsToTransfers.index,
+    },
+  });
+  if (!existingTokenTransfer) {
+    await prisma.token_transfers.create({
+      data: {
+        from_address: parsedTransactionLogsToTransfers.from_address,
+        to_address: parsedTransactionLogsToTransfers.to_address,
+        value: parsedTransactionLogsToTransfers.value,
+        chain_id: parsedTransactionLogsToTransfers.chain_id,
+        currency_id: parsedTransactionLogsToTransfers.currency_id,
+        transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
+        index: parsedTransactionLogsToTransfers.index,
+        created_timestamp: parsedTransactionLogsToTransfers.created_timestamp,
+      },
+    });
+  }
+}
+
+// create currency for 原生幣種
+async function createCurrencyInitial(web3: any, parsedTransaction: any) {
+  const existingCurrency = await prisma.currencies.findFirst({
+    where: { id: "0x0000000000000000000000000000000000000000" },
+  });
+  if (!existingCurrency) {
+    await createCurrency(
+      "0x0000000000000000000000000000000000000000",
+      web3,
+      parsedTransaction,
+    );
+  }
+}
+
+// update balance_versions table for each transaction log
+async function createBalanceVersionsForTransactionLog(
+  parsedTransactionLogsToTransfers: any,
+) {
+  if (parsedTransactionLogsToTransfers.from_address) {
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedTransactionLogsToTransfers.chain_id,
+        created_timestamp: parsedTransactionLogsToTransfers.created_timestamp,
+        address: parsedTransactionLogsToTransfers.from_address,
+        modify: "-" + parsedTransactionLogsToTransfers.value,
+        currency: parsedTransactionLogsToTransfers.currency_id,
+        transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
+      },
+    });
+  }
+  if (parsedTransactionLogsToTransfers.to_address) {
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedTransactionLogsToTransfers.chain_id,
+        created_timestamp: parsedTransactionLogsToTransfers.created_timestamp,
+        address: parsedTransactionLogsToTransfers.to_address,
+        modify: parsedTransactionLogsToTransfers.value,
+        currency: parsedTransactionLogsToTransfers.currency_id,
+        transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
+      },
+    });
+  }
+  // update snapshot
+  await updateSnapshotValue(
+    parsedTransactionLogsToTransfers,
+    parsedTransactionLogsToTransfers.currency_id,
+  );
+}
+
+// update balance_versions table for each transaction
+async function createBalanceVersionsForTransaction(parsedTransaction: any) {
+  if (parsedTransaction.from_address && parsedTransaction.fee !== "0") {
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedTransaction.chain_id,
+        created_timestamp: parsedTransaction.created_timestamp,
+        address: parsedTransaction.from_address,
+        modify: "-" + parsedTransaction.fee,
+        currency: "0x0000000000000000000000000000000000000000",
+      },
+    });
+    // update snapshot
+    await updateSnapshotFee(
+      parsedTransaction,
+      "0x0000000000000000000000000000000000000000",
+    );
+  }
+  if (
+    parsedTransaction.from_address &&
+    parsedTransaction.to_address &&
+    parsedTransaction.value !== "0"
+  ) {
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedTransaction.chain_id,
+        created_timestamp: parsedTransaction.created_timestamp,
+        address: parsedTransaction.from_address,
+        modify: "-" + parsedTransaction.value,
+        currency: "0x0000000000000000000000000000000000000000",
+      },
+    });
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedTransaction.chain_id,
+        created_timestamp: parsedTransaction.created_timestamp,
+        address: parsedTransaction.to_address,
+        modify: parsedTransaction.value,
+        currency: "0x0000000000000000000000000000000000000000",
+      },
+    });
+    // update snapshot
+    await updateSnapshotValue(
+      parsedTransaction,
+      "0x0000000000000000000000000000000000000000",
+    );
+  }
+}
+
+//update Snapshot Fee
+async function updateSnapshotFee(parsedTransaction: any, currency: string) {
+  const latestEntry = await prisma.balance_versions.findMany({
+    where: {
+      address: parsedTransaction.from_address,
+      currency: currency,
+    },
+    orderBy: {
+      created_timestamp: "desc",
+    },
+    take: 1,
+  });
+  if (latestEntry) {
+    const updateSnapshot =
+      parseInt(latestEntry[0].snapshot) - parseInt(parsedTransaction.fee);
+    await prisma.balance_versions.updateMany({
+      where: {
+        address: parsedTransaction.from_address,
+        currency: currency,
+      },
+      data: { snapshot: updateSnapshot.toString() },
+    });
+  }
+}
+
+// update Snapshot Value
+async function updateSnapshotValue(
+  parsedTransactionOrParsedTransactionLogsToTransfers: any,
+  currency: string,
+) {
+  if (parsedTransactionOrParsedTransactionLogsToTransfers.from_address) {
+    const latestEntryFrom = await prisma.balance_versions.findMany({
+      where: {
+        address:
+          parsedTransactionOrParsedTransactionLogsToTransfers.from_address,
+        currency: currency,
+      },
+      orderBy: {
+        created_timestamp: "desc",
+      },
+      take: 1,
+    });
+    if (latestEntryFrom) {
+      const updateSnapshot =
+        parseInt(latestEntryFrom[0].snapshot) -
+        parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
+      await prisma.balance_versions.updateMany({
+        where: {
+          address:
+            parsedTransactionOrParsedTransactionLogsToTransfers.from_address,
+          currency: currency,
+        },
+        data: { snapshot: updateSnapshot.toString() },
+      });
+    }
+  }
+  if (parsedTransactionOrParsedTransactionLogsToTransfers.to_address) {
+    const latestEntryTo = await prisma.balance_versions.findMany({
+      where: {
+        address: parsedTransactionOrParsedTransactionLogsToTransfers.to_address,
+        currency: currency,
+      },
+      orderBy: {
+        created_timestamp: "desc",
+      },
+      take: 1,
+    });
+    if (latestEntryTo) {
+      const updateSnapshot =
+        parseInt(latestEntryTo[0].snapshot) +
+        parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
+      await prisma.balance_versions.updateMany({
+        where: {
+          address:
+            parsedTransactionOrParsedTransactionLogsToTransfers.to_address,
+          currency: currency,
+        },
+        data: { snapshot: updateSnapshot.toString() },
+      });
     }
   }
 }
@@ -243,6 +565,7 @@ async function type(transaction: any, transactionReceipt: any) {
   2	ERC-20
   3	NFT
   4	Evidence
+  99 Others
     */
   // create contract
   if (transactionReceipt.contract_address !== "null") {
@@ -382,93 +705,110 @@ async function toAddresses(parsedTransaction: any) {
 }
 
 // parse to token_transfers table
-async function toTokenTransfers(
-  parsedTransaction: any,
-  transaction: any,
-  transactionReceipt: any,
-  currency_id: string,
-) {
+async function toTokenTransfers(parsedTransaction: any) {
   // check if transfer exist
   const existingTokenTransfer = await prisma.token_transfers.findFirst({
     where: {
       transaction_hash: parsedTransaction.hash,
-      index: Number(transaction.transaction_index),
+      index: 0,
     },
   });
-  const transactionReceiptLogsTopics =
-    transactionReceipt.logs[0]?.topics || null;
-  // erc20 transfer
-  if (
-    !existingTokenTransfer &&
-    transactionReceiptLogsTopics &&
-    transactionReceiptLogsTopics.length === 3 &&
-    transactionReceiptLogsTopics[0] ===
-      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-  ) {
-    const parsedTokenTransfer = {
-      from_address: transactionReceiptLogsTopics[1],
-      to_address: transactionReceiptLogsTopics[2],
-      value: parseInt(transactionReceipt.logs[0]?.data, 16).toString(),
-      chain_id: parsedTransaction.chain_id,
-      currency_id: currency_id,
-      transaction_hash: parsedTransaction.hash,
-      index: Number(transaction.transaction_index),
-      created_timestamp: parsedTransaction.created_timestamp,
-    };
-    // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
-    // eslint-disable-next-line no-console
-    console.log("parsedTokenTransfer - erc20", parsedTokenTransfer);
-    if (parsedTokenTransfer.value !== "0") {
+  if (!existingTokenTransfer) {
+    if (
+      parsedTransaction.from_address &&
+      parsedTransaction.to_address &&
+      parsedTransaction.value !== "0"
+    ) {
+      const parsedTokenTransfer = {
+        from_address: parsedTransaction.from_address,
+        to_address: parsedTransaction.to_address,
+        value: parsedTransaction.value,
+        chain_id: parsedTransaction.chain_id,
+        currency_id: "0x0000000000000000000000000000000000000000",
+        transaction_hash: parsedTransaction.hash,
+        index: 0,
+        created_timestamp: parsedTransaction.created_timestamp,
+      };
       await prisma.token_transfers.create({
         data: parsedTokenTransfer,
       });
-      // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log(
-        "parse to token_transfers table success (ERC 20)",
-        parsedTokenTransfer,
-      );
     }
-    return parsedTokenTransfer;
-    // normal transfer
-  } else if (
-    !existingTokenTransfer &&
-    !transactionReceiptLogsTopics &&
-    parsedTransaction.type === "0"
-  ) {
-    const parsedTokenTransfer = {
-      from_address: parsedTransaction.from_address,
-      to_address: parsedTransaction.to_address,
-      value: parsedTransaction.value,
-      chain_id: parsedTransaction.chain_id,
-      currency_id: currency_id,
-      transaction_hash: parsedTransaction.hash,
-      index: Number(transaction.transaction_index),
-      created_timestamp: parsedTransaction.created_timestamp,
-    };
-    // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
-    // eslint-disable-next-line no-console
-    console.log("parsedTokenTransfer - normal", parsedTokenTransfer);
-    if (parsedTokenTransfer.value !== "0") {
-      await prisma.token_transfers.create({
-        data: parsedTokenTransfer,
-      });
-      // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log(
-        "parse to token_transfers table success (normal)",
-        parsedTokenTransfer,
-      );
-    }
-    return parsedTokenTransfer;
   }
+  // const transactionReceiptLogsTopics =
+  //   transactionReceipt.logs[0]?.topics || null;
+  // // erc20 transfer
+  // if (
+  //   !existingTokenTransfer &&
+  //   transactionReceiptLogsTopics &&
+  //   transactionReceiptLogsTopics.length === 3 &&
+  //   transactionReceiptLogsTopics[0] ===
+  //     "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+  // ) {
+  //   const parsedTokenTransfer = {
+  //     from_address: transactionReceiptLogsTopics[1],
+  //     to_address: transactionReceiptLogsTopics[2],
+  //     value: parseInt(transactionReceipt.logs[0]?.data, 16).toString(),
+  //     chain_id: parsedTransaction.chain_id,
+  //     currency_id: currency_id,
+  //     transaction_hash: parsedTransaction.hash,
+  //     index: Number(transaction.transaction_index),
+  //     created_timestamp: parsedTransaction.created_timestamp,
+  //   };
+  //   // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
+  //   // eslint-disable-next-line no-console
+  //   console.log("parsedTokenTransfer - erc20", parsedTokenTransfer);
+  //   if (parsedTokenTransfer.value !== "0") {
+  //     await prisma.token_transfers.create({
+  //       data: parsedTokenTransfer,
+  //     });
+  //     // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
+  //     // eslint-disable-next-line no-console
+  //     console.log(
+  //       "parse to token_transfers table success (ERC 20)",
+  //       parsedTokenTransfer,
+  //     );
+  //   }
+  //   return parsedTokenTransfer;
+  //   // normal transfer
+  // } else if (
+  //   !existingTokenTransfer &&
+  //   !transactionReceiptLogsTopics &&
+  //   parsedTransaction.type === "0"
+  // ) {
+  //   const parsedTokenTransfer = {
+  //     from_address: parsedTransaction.from_address,
+  //     to_address: parsedTransaction.to_address,
+  //     value: parsedTransaction.value,
+  //     chain_id: parsedTransaction.chain_id,
+  //     currency_id: currency_id,
+  //     transaction_hash: parsedTransaction.hash,
+  //     index: Number(transaction.transaction_index),
+  //     created_timestamp: parsedTransaction.created_timestamp,
+  //   };
+  //   // Deprecated: check parsedTokenTransfer data (20240131 - Gibbs)
+  //   // eslint-disable-next-line no-console
+  //   console.log("parsedTokenTransfer - normal", parsedTokenTransfer);
+  //   if (parsedTokenTransfer.value !== "0") {
+  //     await prisma.token_transfers.create({
+  //       data: parsedTokenTransfer,
+  //     });
+  //     // Deprecated: check parse to token_transfers table success (20240124 - Gibbs)
+  //     // eslint-disable-next-line no-console
+  //     console.log(
+  //       "parse to token_transfers table success (normal)",
+  //       parsedTokenTransfer,
+  //     );
+  //   }
+  //   return parsedTokenTransfer;
+  // }
 }
 
 // parse to token_balances table
 async function toTokenBalances(parsedTokenTransfer: any) {
   // eslint-disable-next-line prettier/prettier
-  const parsedTokenTransferFrom = parsedTokenTransfer.from_address.substr(-40, 40);
-  const parsedTokenTransferTo = parsedTokenTransfer.to_address.substr(-40, 40);
+  const parsedTokenTransferFrom = "0x" + parsedTokenTransfer.from_address.substr(-40, 40);
+  const parsedTokenTransferTo =
+    "0x" + parsedTokenTransfer.to_address.substr(-40, 40);
   // check if from_address exist
   const existingFrom = await prisma.token_balances.findFirst({
     where: {
@@ -541,10 +881,12 @@ async function toCurrencies(
   parsedTransaction: any,
   web3: any,
   transactionReceipt: any,
+  transactionLog: any,
 ) {
   const currency_id = await getCurrencyId(
     transactionReceipt,
     parsedTransaction,
+    transactionLog,
   );
   // Deprecated: check currency_id (20240131 - Gibbs)
   // eslint-disable-next-line no-console
@@ -557,41 +899,55 @@ async function toCurrencies(
     if (!existingCurrency) {
       await createCurrency(currency_id, web3, parsedTransaction);
     }
-    if (parsedTransaction.value !== "0") {
-      // update currency total_transfers
-      await prisma.currencies.update({
-        where: { id: currency_id },
-        data: {
-          total_transfers: {
-            increment: 1,
-          },
-        },
-      });
-    }
   }
   return currency_id;
 }
 
-// get currency id
-async function getCurrencyId(transactionReceipt: any, parsedTransaction: any) {
-  const transactionReceiptLogsTopics =
-    transactionReceipt.logs[0]?.topics || null;
-  // Deprecated: check transactionReceiptLogsTopics data (20240131 - Gibbs)
-  // eslint-disable-next-line no-console
-  console.log("transactionReceiptLogsTopics", transactionReceiptLogsTopics);
-  // erc20 transfer
-  if (
-    transactionReceiptLogsTopics &&
-    transactionReceiptLogsTopics?.length === 3 &&
-    transactionReceiptLogsTopics[0] ===
-      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
-  ) {
-    return parsedTransaction.to_address;
-    // normal transfer
-  } else if (!transactionReceiptLogsTopics && parsedTransaction.type === "0") {
-    return "0x0000000000000000000000000000000000000000";
-  } else {
+// update total transfers
+async function updateTotalTransfers(
+  parsedTransactionOrParsedTransactionLogsToTransfers: any,
+  currency_id: string,
+) {
+  if (parsedTransactionOrParsedTransactionLogsToTransfers.value !== "0") {
+    // update currency total_transfers
+    await prisma.currencies.update({
+      where: { id: currency_id },
+      data: {
+        total_transfers: {
+          increment: 1,
+        },
+      },
+    });
   }
+}
+
+// get currency id
+async function getCurrencyId(
+  transactionReceipt: any,
+  parsedTransaction: any,
+  transactionLog: any,
+) {
+  // const transactionReceiptLogsTopics =
+  //   transactionReceipt.logs[0]?.topics || null;
+  // // Deprecated: check transactionReceiptLogsTopics data (20240131 - Gibbs)
+  // // eslint-disable-next-line no-console
+  // console.log("transactionReceiptLogsTopics", transactionReceiptLogsTopics);
+  // erc20 event: transfer, minted, burned
+  if (
+    transactionLog.topics[0] ===
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" ||
+    transactionLog.topics[0] ===
+      "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0" ||
+    transactionLog.topics[0] ===
+      "0xa78a9be3a7b862d26933ad85fb11d80ef66b8f972d7cbba06621d583943a4098"
+  ) {
+    return transactionLog.address;
+    // normal transfer
+  }
+  // else if (!transactionReceiptLogsTopics && parsedTransaction.type === "0") {
+  //   return "0x0000000000000000000000000000000000000000";
+  // } else {
+  // }
 }
 
 // create new currency
