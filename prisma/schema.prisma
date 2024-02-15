@@ -98,6 +98,8 @@ model public_tags {
   name                String?
   target              String? @unique
   target_type         String?
+  tag_type            String?
+  created_timestamp   Int?
 }
 
 model evidences {
