@@ -126,7 +126,6 @@ model chains {
   contracts           contracts[]
   transactions        transactions[]
   red_flags           red_flags[]
-  black_lists         black_lists[]
   token_balances      token_balances[]
   token_transfers     token_transfers[]
 }
@@ -148,16 +147,6 @@ model transactions {
   chains              chains? @relation(fields: [chain_id], references: [id])
   blocks              blocks? @relation(fields: [block_hash], references: [hash])
   review_datas        review_datas[]       
-}
-
-model black_lists {
-  id                  Int      @id @default(autoincrement())
-  chain_id            Int? 
-  created_timestamp   Int?
-  address_id          Int? @unique
-  public_tag          String?
-  chains              chains? @relation(fields: [chain_id], references: [id])
-  addresses           addresses? @relation(fields: [address_id], references: [id])              
 }
 
 model review_datas {
@@ -254,7 +243,6 @@ model addresses {
   score               Int?
   latest_active_time  Int?
   risk_records        risk_records[]
-  black_lists         black_lists?
   chains              chains? @relation(fields: [chain_id], references: [id])
   review_datas        review_datas[]    
 }
