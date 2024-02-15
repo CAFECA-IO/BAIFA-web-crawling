@@ -37,36 +37,36 @@ async function parsing(web3: any) {
     3. get datas from startBlockNumber to endBlockNumber
     4. error: record error block number
     */
-  // const startBlockNumber =
-  //   (
-  //     await prisma.blocks.findFirst({
-  //       select: { number: true },
-  //       orderBy: { number: "desc" },
-  //     })
-  //   )?.number || 0;
-  // console.log("startBlockNumber:", startBlockNumber);
-  // const endBlockNumber = (
-  //   await prisma.block_raw.findFirst({
-  //     select: { number: true },
-  //     orderBy: { number: "desc" },
-  //   })
-  // ).number;
-  // console.log("endBlockNumber:", endBlockNumber);
-  // for (let i = startBlockNumber; i <= endBlockNumber; i++) {
-  //   try {
-  //     await parseDatasByBlockNumber(i, web3);
-  //     // Deprecated: print block number of parse datas (20240118 - Gibbs)
-  //     // eslint-disable-next-line no-console
-  //     console.log(`parse datas by block number: ${i} success`);
-  //   } catch (error) {
-  //     // Deprecated: print error block number (20240118 - Gibbs)
-  //     // eslint-disable-next-line no-console
-  //     console.log("error block number:", i, error);
-  //   }
-  // }
+  const startBlockNumber =
+    (
+      await prisma.blocks.findFirst({
+        select: { number: true },
+        orderBy: { number: "desc" },
+      })
+    )?.number || 0;
+  console.log("startBlockNumber:", startBlockNumber);
+  const endBlockNumber = (
+    await prisma.block_raw.findFirst({
+      select: { number: true },
+      orderBy: { number: "desc" },
+    })
+  ).number;
+  console.log("endBlockNumber:", endBlockNumber);
+  for (let i = startBlockNumber; i <= endBlockNumber; i++) {
+    try {
+      await parseDatasByBlockNumber(i, web3);
+      // Deprecated: print block number of parse datas (20240118 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log(`parse datas by block number: ${i} success`);
+    } catch (error) {
+      // Deprecated: print error block number (20240118 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("error block number:", i, error);
+    }
+  }
 
   // test
-  await parseDatasByBlockNumber(361435, web3);
+  // await parseDatasByBlockNumber(361435, web3);
 }
 
 export { parsing };
