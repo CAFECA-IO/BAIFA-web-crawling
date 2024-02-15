@@ -212,6 +212,7 @@ model token_balances {
   currency_id         String? 
   chains              chains? @relation(fields: [chain_id], references: [id])
   currencies          currencies? @relation(fields: [currency_id], references: [id])  
+  @@unique([address, currency_id], name: "address_currency_id")
 }
 
 model token_transfers {
