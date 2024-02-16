@@ -395,7 +395,6 @@ async function parsedTransactionLogs(
           index: i + 1,
           created_timestamp: parsedTransaction.created_timestamp,
         };
-        console.log("love money", parsedTransactionLogsToTransfers);
         // burned
       } else if (
         transactionLog.topics[0] ===
