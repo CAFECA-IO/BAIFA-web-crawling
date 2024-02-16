@@ -1089,12 +1089,12 @@ async function createCurrency(
       risk_level: "1",
       price: 0,
       volume_in_24h: "0",
-      symbol: "you tell me",
+      symbol: "ISC",
       total_amount: "0",
       holder_count: 0,
       total_transfers: 0,
       chain_id: parsedTransaction.chain_id,
-      name: "you tell me",
+      name: "iSunCoin",
     };
     await prisma.currencies.create({
       data: newCurrency,
