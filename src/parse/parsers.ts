@@ -481,16 +481,18 @@ async function createCurrencyInitial(web3: any, parsedTransaction: any) {
 async function createBalanceVersionsForTransactionLog(
   parsedTransactionLogsToTransfers: any,
 ) {
-  const existingBalanceVersionFrom = await prisma.balance_versions.findFirst({
-    where: {
-      address: parsedTransactionLogsToTransfers.from_address,
-      currency: parsedTransactionLogsToTransfers.currency_id,
-    },
-  });
-  if (
-    !existingBalanceVersionFrom &&
-    parsedTransactionLogsToTransfers.from_address
-  ) {
+  // const existingBalanceVersionFrom = await prisma.balance_versions.findFirst({
+  //   where: {
+  //     address: parsedTransactionLogsToTransfers.from_address,
+  //     currency: parsedTransactionLogsToTransfers.currency_id,
+  //   },
+  // });
+  // get updated snapshotFrom and snapshotTo
+  const { updateSnapshotFrom, updateSnapshotTo } = await updateSnapshotValue(
+    parsedTransactionLogsToTransfers,
+    parsedTransactionLogsToTransfers.currency_id,
+  );
+  if (parsedTransactionLogsToTransfers.from_address) {
     await prisma.balance_versions.create({
       data: {
         chain_id: parsedTransactionLogsToTransfers.chain_id,
@@ -499,20 +501,17 @@ async function createBalanceVersionsForTransactionLog(
         modify: "-" + parsedTransactionLogsToTransfers.value,
         currency: parsedTransactionLogsToTransfers.currency_id,
         transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
-        snapshot: "0",
+        snapshot: updateSnapshotFrom.toString(),
       },
     });
   }
-  const existingBalanceVersionTo = await prisma.balance_versions.findFirst({
-    where: {
-      address: parsedTransactionLogsToTransfers.to_address,
-      currency: parsedTransactionLogsToTransfers.currency_id,
-    },
-  });
-  if (
-    !existingBalanceVersionTo &&
-    parsedTransactionLogsToTransfers.to_address
-  ) {
+  // const existingBalanceVersionTo = await prisma.balance_versions.findFirst({
+  //   where: {
+  //     address: parsedTransactionLogsToTransfers.to_address,
+  //     currency: parsedTransactionLogsToTransfers.currency_id,
+  //   },
+  // });
+  if (parsedTransactionLogsToTransfers.to_address) {
     await prisma.balance_versions.create({
       data: {
         chain_id: parsedTransactionLogsToTransfers.chain_id,
@@ -521,20 +520,20 @@ async function createBalanceVersionsForTransactionLog(
         modify: parsedTransactionLogsToTransfers.value,
         currency: parsedTransactionLogsToTransfers.currency_id,
         transaction_hash: parsedTransactionLogsToTransfers.transaction_hash,
-        snapshot: "0",
+        snapshot: updateSnapshotTo.toString(),
       },
     });
   }
-  // update snapshot
-  await updateSnapshotValue(
-    parsedTransactionLogsToTransfers,
-    parsedTransactionLogsToTransfers.currency_id,
-  );
 }
 
 // update balance_versions table for each transaction
 async function createBalanceVersionsForTransaction(parsedTransaction: any) {
   if (parsedTransaction.from_address && parsedTransaction.fee !== "0") {
+    // get updated snapshot
+    const snapshotFee = await updateSnapshotFee(
+      parsedTransaction,
+      "0x0000000000000000000000000000000000000000",
+    );
     await prisma.balance_versions.create({
       data: {
         chain_id: parsedTransaction.chain_id,
@@ -542,20 +541,20 @@ async function createBalanceVersionsForTransaction(parsedTransaction: any) {
         address: parsedTransaction.from_address,
         modify: "-" + parsedTransaction.fee,
         currency: "0x0000000000000000000000000000000000000000",
-        snapshot: "0",
+        snapshot: snapshotFee.toString(),
       },
     });
-    // update snapshot
-    await updateSnapshotFee(
-      parsedTransaction,
-      "0x0000000000000000000000000000000000000000",
-    );
   }
   if (
     parsedTransaction.from_address &&
     parsedTransaction.to_address &&
     parsedTransaction.value !== "0"
   ) {
+    // get updated snapshotFrom and snapshotTo
+    const { updateSnapshotFrom, updateSnapshotTo } = await updateSnapshotValue(
+      parsedTransaction,
+      "0x0000000000000000000000000000000000000000",
+    );
     await prisma.balance_versions.create({
       data: {
         chain_id: parsedTransaction.chain_id,
@@ -563,7 +562,7 @@ async function createBalanceVersionsForTransaction(parsedTransaction: any) {
         address: parsedTransaction.from_address,
         modify: "-" + parsedTransaction.value,
         currency: "0x0000000000000000000000000000000000000000",
-        snapshot: "0",
+        snapshot: updateSnapshotFrom.toString(),
       },
     });
     await prisma.balance_versions.create({
@@ -573,14 +572,9 @@ async function createBalanceVersionsForTransaction(parsedTransaction: any) {
         address: parsedTransaction.to_address,
         modify: parsedTransaction.value,
         currency: "0x0000000000000000000000000000000000000000",
-        snapshot: "0",
+        snapshot: updateSnapshotTo.toString(),
       },
     });
-    // update snapshot
-    await updateSnapshotValue(
-      parsedTransaction,
-      "0x0000000000000000000000000000000000000000",
-    );
   }
 }
 
@@ -596,24 +590,12 @@ async function updateSnapshotFee(parsedTransaction: any, currency: string) {
     },
     take: 1,
   });
-  console.log("latestEntry-fee", latestEntry);
   if (latestEntry) {
-    const updateSnapshot =
+    const updateSnapshotFee =
       parseInt(latestEntry[0].snapshot) - parseInt(parsedTransaction.fee);
-    console.log("updateSnapshot-fee", updateSnapshot);
-    // await prisma.balance_versions.updateMany({
-    //   where: {
-    //     address: parsedTransaction.from_address,
-    //     currency: currency,
-    //   },
-    //   data: { snapshot: updateSnapshot.toString() },
-    // });
-    await prisma.balance_versions.update({
-      where: {
-        id: latestEntry[0].id,
-      },
-      data: { snapshot: updateSnapshot.toString() },
-    });
+    return updateSnapshotFee;
+  } else {
+    return -parseInt(parsedTransaction.fee);
   }
 }
 
@@ -622,6 +604,8 @@ async function updateSnapshotValue(
   parsedTransactionOrParsedTransactionLogsToTransfers: any,
   currency: string,
 ) {
+  let updateSnapshotFrom = 0;
+  let updateSnapshotTo = 0;
   if (parsedTransactionOrParsedTransactionLogsToTransfers.from_address) {
     const latestEntryFrom = await prisma.balance_versions.findMany({
       where: {
@@ -634,20 +618,14 @@ async function updateSnapshotValue(
       },
       take: 1,
     });
-    console.log("latestEntryFrom", latestEntryFrom);
-    if (latestEntryFrom) {
-      const updateSnapshot =
+    if (latestEntryFrom.length > 0) {
+      updateSnapshotFrom =
         parseInt(latestEntryFrom[0].snapshot) -
         parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
-      console.log("updateSnapshot-value-from", updateSnapshot);
-      await prisma.balance_versions.updateMany({
-        where: {
-          address:
-            parsedTransactionOrParsedTransactionLogsToTransfers.from_address,
-          currency: currency,
-        },
-        data: { snapshot: updateSnapshot.toString() },
-      });
+    } else {
+      updateSnapshotFrom = -parseInt(
+        parsedTransactionOrParsedTransactionLogsToTransfers.value,
+      );
     }
   }
   if (parsedTransactionOrParsedTransactionLogsToTransfers.to_address) {
@@ -661,22 +639,17 @@ async function updateSnapshotValue(
       },
       take: 1,
     });
-    console.log("latestEntryTo", latestEntryTo);
-    if (latestEntryTo) {
-      const updateSnapshot =
+    if (latestEntryTo.length > 0) {
+      updateSnapshotTo =
         parseInt(latestEntryTo[0].snapshot) +
         parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
-      console.log("updateSnapshot-value-to", updateSnapshot);
-      await prisma.balance_versions.updateMany({
-        where: {
-          address:
-            parsedTransactionOrParsedTransactionLogsToTransfers.to_address,
-          currency: currency,
-        },
-        data: { snapshot: updateSnapshot.toString() },
-      });
+    } else {
+      updateSnapshotTo = parseInt(
+        parsedTransactionOrParsedTransactionLogsToTransfers.value,
+      );
     }
   }
+  return { updateSnapshotFrom, updateSnapshotTo };
 }
 
 // different type of transaction
