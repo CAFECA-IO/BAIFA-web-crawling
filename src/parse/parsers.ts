@@ -371,7 +371,9 @@ async function parsedTransactionLogs(
         // minted
       } else if (
         transactionLog.topics[0] ===
-        "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0"
+          "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0" ||
+        transactionLog.topics[0] ===
+          "0x2fe5be0146f74c5bce36c0b80911af6c7d86ff27e89d5cfa61fc681327954e5d"
       ) {
         parsedTransactionLogsToTransfers = {
           to_address: "0x" + transactionLog.topics[1].substr(-40),
@@ -1047,6 +1049,8 @@ async function getCurrencyId(
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" ||
     transactionLog.topics[0] ===
       "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0" ||
+    transactionLog.topics[0] ===
+      "0x2fe5be0146f74c5bce36c0b80911af6c7d86ff27e89d5cfa61fc681327954e5d" ||
     transactionLog.topics[0] ===
       "0xa78a9be3a7b862d26933ad85fb11d80ef66b8f972d7cbba06621d583943a4098"
   ) {
