@@ -96,7 +96,7 @@ model contracts {
 model public_tags {
   id                  Int      @id @default(autoincrement())
   name                String?
-  target              String? @unique
+  target              String?
   target_type         String?
   tag_type            String?
   created_timestamp   Int?

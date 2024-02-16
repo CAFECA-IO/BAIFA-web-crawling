@@ -588,10 +588,16 @@ async function updateSnapshotFee(parsedTransaction: any, currency: string) {
     const updateSnapshot =
       parseInt(latestEntry[0].snapshot) - parseInt(parsedTransaction.fee);
     console.log("updateSnapshot-fee", updateSnapshot);
-    await prisma.balance_versions.updateMany({
+    // await prisma.balance_versions.updateMany({
+    //   where: {
+    //     address: parsedTransaction.from_address,
+    //     currency: currency,
+    //   },
+    //   data: { snapshot: updateSnapshot.toString() },
+    // });
+    await prisma.balance_versions.update({
       where: {
-        address: parsedTransaction.from_address,
-        currency: currency,
+        id: latestEntry[0].id,
       },
       data: { snapshot: updateSnapshot.toString() },
     });
