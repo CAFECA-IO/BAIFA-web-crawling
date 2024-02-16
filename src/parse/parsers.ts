@@ -371,9 +371,7 @@ async function parsedTransactionLogs(
         // minted
       } else if (
         transactionLog.topics[0] ===
-          "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0" ||
-        transactionLog.topics[0] ===
-          "0x2fe5be0146f74c5bce36c0b80911af6c7d86ff27e89d5cfa61fc681327954e5d"
+        "0x9d228d69b5fdb8d273a2336f8fb8612d039631024ea9bf09c424a9503aa078f0"
       ) {
         parsedTransactionLogsToTransfers = {
           to_address: "0x" + transactionLog.topics[1].substr(-40),
@@ -384,6 +382,20 @@ async function parsedTransactionLogs(
           index: i + 1,
           created_timestamp: parsedTransaction.created_timestamp,
         };
+      } else if (
+        transactionLog.topics[0] ===
+        "0x2fe5be0146f74c5bce36c0b80911af6c7d86ff27e89d5cfa61fc681327954e5d"
+      ) {
+        parsedTransactionLogsToTransfers = {
+          to_address: "0x" + transactionLog.topics[1].substr(-40),
+          value: BigInt(transactionLog.data.slice(0, 66)).toString(),
+          chain_id: parsedTransaction.chain_id,
+          currency_id: currency_id,
+          transaction_hash: parsedTransaction.hash,
+          index: i + 1,
+          created_timestamp: parsedTransaction.created_timestamp,
+        };
+        console.log("love money", parsedTransactionLogsToTransfers);
         // burned
       } else if (
         transactionLog.topics[0] ===
