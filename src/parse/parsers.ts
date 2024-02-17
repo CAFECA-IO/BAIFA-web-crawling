@@ -32,6 +32,7 @@ async function toBlocks(
   block: any,
   chainId: number,
   chainData: any,
+  web3: any,
 ) {
   // check if data exist
   const existingBlock = await prisma.blocks.findUnique({
@@ -68,6 +69,7 @@ async function toBlocks(
     // Deprecated: check parse to blocks table success (20240105 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to blocks table success", parsedBlock);
+    await createCurrencyInitial(web3, parsedBlock);
     return parsedBlock;
   }
 }
@@ -246,7 +248,7 @@ async function toTransactions(
         // Deprecated: check parse to transactions table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
         console.log("parsedTransaction success! hash:", parsedTransaction.hash);
-        await createCurrencyInitial(web3, parsedTransaction);
+        // await createCurrencyInitial(web3, parsedTransaction);
         await updateTotalTransfers(
           parsedTransaction,
           "0x0000000000000000000000000000000000000000",
@@ -479,7 +481,7 @@ async function TransactionLogToTokenTransfers(
 }
 
 // create currency for 原生幣種
-async function createCurrencyInitial(web3: any, parsedTransaction: any) {
+async function createCurrencyInitial(web3: any, parsedBlock: any) {
   const existingCurrency = await prisma.currencies.findFirst({
     where: { id: "0x0000000000000000000000000000000000000000" },
   });
@@ -487,7 +489,7 @@ async function createCurrencyInitial(web3: any, parsedTransaction: any) {
     await createCurrency(
       "0x0000000000000000000000000000000000000000",
       web3,
-      parsedTransaction,
+      parsedBlock,
     );
   }
 }
@@ -1066,7 +1068,7 @@ async function getCurrencyId(
 async function createCurrency(
   currency_id: string,
   web3: any,
-  parsedTransaction: any,
+  parsedTransactionOrBlock: any,
 ) {
   const contractAddress = currency_id;
   // Deprecated: check contractAddress (20240131 - Gibbs)
@@ -1086,7 +1088,7 @@ async function createCurrency(
       total_amount: (await contract.methods.totalSupply().call()).toString(),
       holder_count: 0,
       total_transfers: 0,
-      chain_id: parsedTransaction.chain_id,
+      chain_id: parsedTransactionOrBlock.chain_id,
       name: await contract.methods.name().call(),
     };
     await prisma.currencies.create({
@@ -1108,7 +1110,7 @@ async function createCurrency(
       total_amount: "0",
       holder_count: 0,
       total_transfers: 0,
-      chain_id: parsedTransaction.chain_id,
+      chain_id: parsedTransactionOrBlock.chain_id,
       name: "iSunCoin",
     };
     await prisma.currencies.create({
@@ -1141,6 +1143,8 @@ async function updateTotalAmount(parsedBlock: any) {
       id: "0x0000000000000000000000000000000000000000",
     },
   });
+  console.log("parsedBlock", parsedBlock) 
+  console.log("originalCurrency", originalCurrency)
   const totalAmount = (
     BigInt(originalCurrency.total_amount) + BigInt(parsedBlock.reward)
   ).toString();
