@@ -73,6 +73,20 @@ async function toBlocks(
 
 // block to balance_versions table
 async function BlockToBalanceVersions(parsedBlock: any) {
+  const latestSnapshot = await prisma.balance_versions.findMany({
+    where: {
+      address: parsedBlock.miner,
+      currency: "0x0000000000000000000000000000000000000000",
+    },
+    orderBy: {
+      created_timestamp: "desc",
+    },
+    take: 1,
+  });
+  const updatedSnapshot =
+    latestSnapshot.length > 0
+      ? BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward)
+      : parsedBlock.reward;
   await prisma.balance_versions.create({
     data: {
       chain_id: parsedBlock.chain_id,
@@ -80,7 +94,7 @@ async function BlockToBalanceVersions(parsedBlock: any) {
       address: parsedBlock.miner,
       modify: parsedBlock.reward,
       currency: "0x0000000000000000000000000000000000000000",
-      snapshot: parsedBlock.reward.toString(),
+      snapshot: updatedSnapshot.toString(),
     },
   });
   // Deprecated: check parse to balance_versions table success (20240206 - Gibbs)
