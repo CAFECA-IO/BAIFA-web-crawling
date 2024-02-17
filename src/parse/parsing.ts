@@ -4,7 +4,12 @@ import {
   getTransactionReceiptRawDatas,
 } from "./get_raw_data";
 
-import { toBlocks, toContracts, toTransactions } from "./parsers";
+import {
+  toBlocks,
+  toContracts,
+  toTransactions,
+  updateTotalAmount,
+} from "./parsers";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -22,9 +27,16 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   // console.log("transactions:", transactions);
   const transactionReceipts = await getTransactionReceiptRawDatas(number);
   // console.log("transactionReceipts:", transactionReceipts);
-  await toBlocks(number, block, chainData.chain_id, chainData);
+  const parsedBlock = await toBlocks(
+    number,
+    block,
+    chainData.chain_id,
+    chainData,
+  );
   await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
+  // update total amount for 原生幣種 in currencies table after parsing each block
+  await updateTotalAmount(parsedBlock);
   // Deprecated: print block number of parse datas (20240131 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("parse datas by block number:", number, "success");

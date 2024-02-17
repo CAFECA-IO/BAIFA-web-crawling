@@ -68,6 +68,7 @@ async function toBlocks(
     // Deprecated: check parse to blocks table success (20240105 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("parse to blocks table success", parsedBlock);
+    return parsedBlock;
   }
 }
 
@@ -1133,4 +1134,31 @@ async function toCodes(codesData: any) {
   console.log("codes table created !");
 }
 
-export { toBlocks, toContracts, toChains, toTransactions, toCodes };
+// update total amount for 原生幣種 in currencies table after parsing each block
+async function updateTotalAmount(parsedBlock: any) {
+  const originalCurrency = await prisma.currencies.findUnique({
+    where: {
+      id: "0x0000000000000000000000000000000000000000",
+    },
+  });
+  const totalAmount = (
+    BigInt(originalCurrency.total_amount) + BigInt(parsedBlock.reward)
+  ).toString();
+  await prisma.currencies.update({
+    where: {
+      id: "0x0000000000000000000000000000000000000000",
+    },
+    data: {
+      total_amount: totalAmount,
+    },
+  });
+}
+
+export {
+  toBlocks,
+  toContracts,
+  toChains,
+  toTransactions,
+  toCodes,
+  updateTotalAmount,
+};
