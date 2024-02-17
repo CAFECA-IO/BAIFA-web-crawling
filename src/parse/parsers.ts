@@ -46,8 +46,8 @@ async function toBlocks(
       created_timestamp: Number(block.timestamp),
       miner: block.miner,
       reward: (
-        Number(block.base_fee_per_gas) * Number(block.gas_used) +
-        10 ** 18
+        BigInt(block.base_fee_per_gas) * BigInt(block.gas_used) +
+        BigInt(10 ** 18)
       ).toString(),
       size: Number(block.size),
       transaction_count: block.transaction_count,
@@ -86,9 +86,16 @@ async function BlockToBalanceVersions(parsedBlock: any) {
     },
     take: 1,
   });
-  const updatedSnapshot =
+  // console.log("latestSnapshot[0].snapshot", latestSnapshot[0].snapshot);
+  // console.log("parsedBlock.reward", parsedBlock.reward);
+  // const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
+  // console.log("test", test);
+  // console.log("test.toString()", test.toString());
+  const updatedSnapshot: string =
     latestSnapshot.length > 0
-      ? BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward)
+      ? (
+          BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward)
+        ).toString()
       : parsedBlock.reward;
   await prisma.balance_versions.create({
     data: {
@@ -97,7 +104,7 @@ async function BlockToBalanceVersions(parsedBlock: any) {
       address: parsedBlock.miner,
       modify: parsedBlock.reward,
       currency: "0x0000000000000000000000000000000000000000",
-      snapshot: updatedSnapshot.toString(),
+      snapshot: updatedSnapshot,
     },
   });
   // Deprecated: check parse to balance_versions table success (20240206 - Gibbs)
@@ -209,7 +216,7 @@ async function toTransactions(
           evidence_id: await evidenceId(transaction, transactionReceipt, block),
           value: transaction.value,
           fee: (
-            Number(transaction.gas) * Number(transaction.gas_price)
+            BigInt(transaction.gas) * BigInt(transaction.gas_price)
           ).toString(),
           // Info: (20240115 - Gibbs) transaction 裡的 from, to 及 receipt logs裡的每個 address, 不重複
           related_addresses: [
@@ -932,7 +939,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     const parsedFromTokenBalance = {
       address: parsedTokenTransferFrom,
       currency_id: parsedTokenTransfer.currency_id,
-      value: (Number(parsedTokenTransfer.value) * -1).toString(),
+      value: (BigInt(parsedTokenTransfer.value) * BigInt(-1)).toString(),
       chain_id: parsedTokenTransfer.chain_id,
     };
     await prisma.token_balances.create({
@@ -947,7 +954,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
       },
       data: {
         value: (
-          Number(existingFrom.value) - Number(parsedTokenTransfer.value)
+          BigInt(existingFrom.value) - BigInt(parsedTokenTransfer.value)
         ).toString(),
       },
     });
@@ -978,7 +985,7 @@ async function toTokenBalances(parsedTokenTransfer: any) {
       },
       data: {
         value: (
-          Number(existingTo.value) + Number(parsedTokenTransfer.value)
+          BigInt(existingTo.value) + BigInt(parsedTokenTransfer.value)
         ).toString(),
       },
     });
