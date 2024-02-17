@@ -60,6 +60,24 @@ const codesData = [
     meaning: "address",
   },
   {
+    table_name: "public_tags",
+    table_column: "tag_type",
+    value: 0,
+    meaning: "一般用戶標籤",
+  },
+  {
+    table_name: "public_tags",
+    table_column: "tag_type",
+    value: 1,
+    meaning: "特殊身份標籤",
+  },
+  {
+    table_name: "public_tags",
+    table_column: "tag_type",
+    value: 9,
+    meaning: "黑名單標籤",
+  },
+  {
     table_name: "evidences",
     table_column: "state",
     value: 0,
