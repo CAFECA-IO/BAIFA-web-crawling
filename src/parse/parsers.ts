@@ -91,12 +91,12 @@ async function BlockToBalanceVersions(parsedBlock: any) {
   // const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
   // console.log("test", test);
   // console.log("test.toString()", test.toString());
-  const updatedSnapshot: string =
-    latestSnapshot.length > 0
-      ? (
-          BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward)
-        ).toString()
-      : parsedBlock.reward;
+  let updatedSnapshot = parsedBlock.reward;
+  if (latestSnapshot && latestSnapshot.length > 0) {
+    updatedSnapshot = (
+      BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward)
+    ).toString();
+  }
   await prisma.balance_versions.create({
     data: {
       chain_id: parsedBlock.chain_id,
