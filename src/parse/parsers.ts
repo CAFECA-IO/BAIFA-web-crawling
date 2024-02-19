@@ -95,7 +95,7 @@ async function BlockToBalanceVersions(parsedBlock: any) {
   let updatedSnapshot = parsedBlock.reward;
   if (latestSnapshot && latestSnapshot.length > 0) {
     const reward = BigInt(parsedBlock.reward);
-    const lastSnapshot = BigInt(latestSnapshot[0].snapshot);
+    const lastSnapshot = BigInt(latestSnapshot[0].snapshot.toString());
     updatedSnapshot = lastSnapshot + reward;
     updatedSnapshot = updatedSnapshot.toString();
   }
