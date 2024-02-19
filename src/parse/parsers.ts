@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 // import abi
 import abi from "./abi";
-import { last } from "rxjs";
+import { BigNumber } from "bignumber.js";
 
 const prisma = new PrismaClient();
 
@@ -95,7 +95,8 @@ async function BlockToBalanceVersions(parsedBlock: any) {
   let updatedSnapshot = parsedBlock.reward;
   if (latestSnapshot && latestSnapshot.length > 0) {
     const reward = BigInt(parsedBlock.reward);
-    const lastSnapshot = BigInt(latestSnapshot[0].snapshot.toString());
+    const bigNumber = new BigNumber(latestSnapshot[0].snapshot);
+    const lastSnapshot = BigInt(bigNumber.toFixed());
     updatedSnapshot = lastSnapshot + reward;
     updatedSnapshot = updatedSnapshot.toString();
   }
