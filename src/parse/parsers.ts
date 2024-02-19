@@ -86,10 +86,10 @@ async function BlockToBalanceVersions(parsedBlock: any) {
     },
     take: 1,
   });
-  console.log("latestSnapshot[0].snapshot", latestSnapshot[0].snapshot);
-  console.log("parsedBlock.reward", parsedBlock.reward);
-  const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
-  console.log("test", test);
+  // console.log("latestSnapshot[0].snapshot", latestSnapshot[0].snapshot);
+  // console.log("parsedBlock.reward", parsedBlock.reward);
+  // const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
+  // console.log("test", test);
   // console.log("test.toString()", test.toString());
   let updatedSnapshot = parsedBlock.reward;
   if (latestSnapshot && latestSnapshot.length > 0) {
