@@ -86,10 +86,10 @@ async function BlockToBalanceVersions(parsedBlock: any) {
     },
     take: 1,
   });
-  // console.log("latestSnapshot[0].snapshot", latestSnapshot[0].snapshot);
-  // console.log("parsedBlock.reward", parsedBlock.reward);
-  // const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
-  // console.log("test", test);
+  console.log("latestSnapshot[0].snapshot", latestSnapshot[0].snapshot);
+  console.log("parsedBlock.reward", parsedBlock.reward);
+  const test = BigInt(latestSnapshot[0].snapshot) + BigInt(parsedBlock.reward);
+  console.log("test", test);
   // console.log("test.toString()", test.toString());
   let updatedSnapshot = parsedBlock.reward;
   if (latestSnapshot && latestSnapshot.length > 0) {
@@ -1145,24 +1145,26 @@ async function toCodes(codesData: any) {
 
 // update total amount for 原生幣種 in currencies table after parsing each block
 async function updateTotalAmount(parsedBlock: any) {
-  const originalCurrency = await prisma.currencies.findUnique({
-    where: {
-      id: "0x0000000000000000000000000000000000000000",
-    },
-  });
-  console.log("parsedBlock", parsedBlock) 
-  console.log("originalCurrency", originalCurrency)
-  const totalAmount = (
-    BigInt(originalCurrency.total_amount) + BigInt(parsedBlock.reward)
-  ).toString();
-  await prisma.currencies.update({
-    where: {
-      id: "0x0000000000000000000000000000000000000000",
-    },
-    data: {
-      total_amount: totalAmount,
-    },
-  });
+  if (parsedBlock) {
+    const originalCurrency = await prisma.currencies.findUnique({
+      where: {
+        id: "0x0000000000000000000000000000000000000000",
+      },
+    });
+    // console.log("parsedBlock", parsedBlock)
+    // console.log("originalCurrency", originalCurrency)
+    const totalAmount = (
+      BigInt(originalCurrency.total_amount) + BigInt(parsedBlock.reward)
+    ).toString();
+    await prisma.currencies.update({
+      where: {
+        id: "0x0000000000000000000000000000000000000000",
+      },
+      data: {
+        total_amount: totalAmount,
+      },
+    });
+  }
 }
 
 export {
