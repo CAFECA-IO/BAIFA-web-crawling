@@ -1,7 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 // import abi
 import abi from "./abi";
-import { BigNumber } from "bignumber.js";
 
 const prisma = new PrismaClient();
 
@@ -95,8 +94,7 @@ async function BlockToBalanceVersions(parsedBlock: any) {
   let updatedSnapshot = parsedBlock.reward;
   if (latestSnapshot && latestSnapshot.length > 0) {
     const reward = BigInt(parsedBlock.reward);
-    const bigNumber = new BigNumber(latestSnapshot[0].snapshot);
-    const lastSnapshot = BigInt(bigNumber.toFixed());
+    const lastSnapshot = BigInt(latestSnapshot[0].snapshot);
     updatedSnapshot = lastSnapshot + reward;
     updatedSnapshot = updatedSnapshot.toString();
   }
@@ -619,10 +617,10 @@ async function updateSnapshotFee(parsedTransaction: any, currency: string) {
   });
   if (latestEntry) {
     const updateSnapshotFee =
-      parseInt(latestEntry[0].snapshot) - parseInt(parsedTransaction.fee);
+      BigInt(latestEntry[0].snapshot) - BigInt(parsedTransaction.fee);
     return updateSnapshotFee;
   } else {
-    return -parseInt(parsedTransaction.fee);
+    return -BigInt(parsedTransaction.fee);
   }
 }
 
@@ -631,8 +629,8 @@ async function updateSnapshotValue(
   parsedTransactionOrParsedTransactionLogsToTransfers: any,
   currency: string,
 ) {
-  let updateSnapshotFrom = 0;
-  let updateSnapshotTo = 0;
+  let updateSnapshotFrom = BigInt(0);
+  let updateSnapshotTo = BigInt(0);
   if (parsedTransactionOrParsedTransactionLogsToTransfers.from_address) {
     const latestEntryFrom = await prisma.balance_versions.findMany({
       where: {
@@ -647,10 +645,10 @@ async function updateSnapshotValue(
     });
     if (latestEntryFrom.length > 0) {
       updateSnapshotFrom =
-        parseInt(latestEntryFrom[0].snapshot) -
-        parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
+        BigInt(latestEntryFrom[0].snapshot) -
+        BigInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
     } else {
-      updateSnapshotFrom = -parseInt(
+      updateSnapshotFrom = -BigInt(
         parsedTransactionOrParsedTransactionLogsToTransfers.value,
       );
     }
@@ -668,10 +666,10 @@ async function updateSnapshotValue(
     });
     if (latestEntryTo.length > 0) {
       updateSnapshotTo =
-        parseInt(latestEntryTo[0].snapshot) +
-        parseInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
+        BigInt(latestEntryTo[0].snapshot) +
+        BigInt(parsedTransactionOrParsedTransactionLogsToTransfers.value);
     } else {
-      updateSnapshotTo = parseInt(
+      updateSnapshotTo = BigInt(
         parsedTransactionOrParsedTransactionLogsToTransfers.value,
       );
     }
