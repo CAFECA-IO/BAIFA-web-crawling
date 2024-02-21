@@ -1078,7 +1078,6 @@ async function createCurrency(
   web3: any,
   parsedTransactionOrBlock: any,
 ) {
-  try 
   const contractAddress = currency_id;
   // Deprecated: check contractAddress (20240131 - Gibbs)
   // eslint-disable-next-line no-console
@@ -1088,24 +1087,19 @@ async function createCurrency(
     contractAddress !== "0x0000000000000000000000000000000000000000"
   ) {
     const contract = new web3.eth.Contract(abi, contractAddress);
-    const newCurrency = {
-      id: currency_id,
-      risk_level: "1",
-      price: 0,
-      volume_in_24h: "0",
-      symbol: await contract.methods.symbol().call(),
-      total_amount: (await contract.methods.totalSupply().call()).toString(),
-      holder_count: 0,
-      total_transfers: 0,
-      chain_id: parsedTransactionOrBlock.chain_id,
-      name: await contract.methods.name().call(),
-    };
-    await prisma.currencies.create({
-      data: newCurrency,
-    });
-    // Deprecated: check new currency create success (20240123 - Gibbs)
-    // eslint-disable-next-line no-console
-    console.log("create new ERC 20 currency success", newCurrency);
+    const newERC20Currency = await createERC20Currency(
+      currency_id,
+      contract,
+      parsedTransactionOrBlock,
+    );
+    if (newERC20Currency) {
+      await prisma.currencies.create({
+        data: newERC20Currency,
+      });
+      // Deprecated: check new currency create success (20240123 - Gibbs)
+      // eslint-disable-next-line no-console
+      console.log("create new ERC 20 currency success", newERC20Currency);
+    }
   } else if (
     contractAddress &&
     contractAddress === "0x0000000000000000000000000000000000000000"
@@ -1128,6 +1122,33 @@ async function createCurrency(
     // Deprecated: check new currency create success (20240125 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("create new normal currency success", newCurrency);
+  }
+}
+
+// if currency_id is ERC20, create new currency
+async function createERC20Currency(
+  currency_id: string,
+  contract: any,
+  parsedTransactionOrBlock: any,
+) {
+  try {
+    const newCurrency = {
+      id: currency_id,
+      risk_level: "1",
+      price: 0,
+      volume_in_24h: "0",
+      symbol: await contract.methods.symbol().call(),
+      total_amount: (await contract.methods.totalSupply().call()).toString(),
+      holder_count: 0,
+      total_transfers: 0,
+      chain_id: parsedTransactionOrBlock.chain_id,
+      name: await contract.methods.name().call(),
+    };
+    return newCurrency;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("It's not ERC20 token transfer");
+    return false;
   }
 }
 
