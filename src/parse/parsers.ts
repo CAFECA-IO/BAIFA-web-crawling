@@ -1078,6 +1078,7 @@ async function createCurrency(
   web3: any,
   parsedTransactionOrBlock: any,
 ) {
+  try 
   const contractAddress = currency_id;
   // Deprecated: check contractAddress (20240131 - Gibbs)
   // eslint-disable-next-line no-console

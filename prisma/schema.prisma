@@ -147,20 +147,17 @@ model transactions {
   fee                 String?
   related_addresses   String[]
   chains              chains? @relation(fields: [chain_id], references: [id])
-  blocks              blocks? @relation(fields: [block_hash], references: [hash])
-  review_datas        review_datas[]       
+  blocks              blocks? @relation(fields: [block_hash], references: [hash])     
 }
 
 model review_datas {
   id                  Int      @id @default(autoincrement())
-  target              String? @unique
+  target              String? 
   target_type         String?
   created_timestamp   Int?
   content             String?
   stars               Int?
   author_address      String?
-  addresses           addresses? @relation(fields:[target], references: [address], map: "review_datas_addresses_fkey")
-  transactions        transactions? @relation(fields:[target], references: [hash], map: "review_datas_transactions_fkey")
 }
 
 model red_flags {
@@ -245,8 +242,7 @@ model addresses {
   score               Int?
   latest_active_time  Int?
   risk_records        risk_records[]
-  chains              chains? @relation(fields: [chain_id], references: [id])
-  review_datas        review_datas[]    
+  chains              chains? @relation(fields: [chain_id], references: [id])   
 }
 
 model risk_records {
