@@ -377,11 +377,12 @@ async function parsedTransactionLogs(
         transactionReceipt,
         transactionLog,
       );
-      let parsedTransactionLogsToTransfers;
-      // transfer
+      let parsedTransactionLogsToTransfers = undefined;
+      // only take erc20 transfer; erc20 transfer: 3 params, nft transfer: 4 params
       if (
         transactionLog.topics[0] ===
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+          "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef" &&
+        transactionLog.topics.length === 3
       ) {
         parsedTransactionLogsToTransfers = {
           from_address: "0x" + transactionLog.topics[1].substr(-40),
@@ -444,19 +445,24 @@ async function parsedTransactionLogs(
       if (!existingCurrency) {
         await createCurrency(currency_id, web3, parsedTransaction);
       }
-      // update balance_versions table
-      await createBalanceVersionsForTransactionLog(
-        parsedTransactionLogsToTransfers,
-      );
-      // update token transfers table
-      await TransactionLogToTokenTransfers(parsedTransactionLogsToTransfers);
-      // update total transfers
-      await updateTotalTransfers(parsedTransactionLogsToTransfers, currency_id);
-      // update token balances for each transaction log
-      await updateTokenBalances(
-        parsedTransactionLogsToTransfers,
-        parsedTransactionLogsToTransfers.currency_id,
-      );
+      if (parsedTransactionLogsToTransfers) {
+        // update balance_versions table
+        await createBalanceVersionsForTransactionLog(
+          parsedTransactionLogsToTransfers,
+        );
+        // update token transfers table
+        await TransactionLogToTokenTransfers(parsedTransactionLogsToTransfers);
+        // update total transfers
+        await updateTotalTransfers(
+          parsedTransactionLogsToTransfers,
+          currency_id,
+        );
+        // update token balances for each transaction log
+        await updateTokenBalances(
+          parsedTransactionLogsToTransfers,
+          currency_id,
+        );
+      }
     }
   }
 }
