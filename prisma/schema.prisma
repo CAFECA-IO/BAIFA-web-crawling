@@ -271,3 +271,15 @@ model balance_versions {
   created_timestamp   Int?
   transaction_hash    String?
 }
+
+model evidences_test {
+  id                  Int      @id @default(autoincrement())
+  evidence_id         String?      
+  chain_id            Int? 
+  created_timestamp   Int?
+  contract_address    String?
+  state               String?
+  content             String?
+  creator_address     String?
+  token_id            String?
+}
