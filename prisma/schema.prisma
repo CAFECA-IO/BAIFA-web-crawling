@@ -108,7 +108,7 @@ model evidences {
   chain_id            Int? 
   created_timestamp   Int?
   contract_address    String?
-  state               String?
+  state               String @default("1")
   content             String?
   creator_address     String?
   token_id            String?

@@ -706,8 +706,8 @@ async function type(transaction: any, transactionReceipt: any) {
   } else if (transaction.input.substring(0, 10) === "0x23b872dd") {
     return "3";
     // evidence
-    // 0xb6aca21a test:0x60806040
-  } else if (transaction.input.substring(0, 10) === "0xb6aca21a") {
+    // new: 0xaddd4bd3 old: 0xb6aca21a test: 0x60806040
+  } else if (transaction.input.substring(0, 10) === "0xaddd4bd3") {
     return "4";
   } else {
     return "99";
@@ -721,8 +721,8 @@ async function evidenceId(
   block: any,
 ) {
   // check if transaction is evidence
-  // 0xb6aca21a test:0x60806040
-  if (transaction.input?.substring(0, 10) === "0xb6aca21a") {
+  // new: 0xaddd4bd3 old:0xb6aca21a test:0x60806040
+  if (transaction.input?.substring(0, 10) === "0xaddd4bd3") {
     if (transactionReceipt.logs.length > 0) {
       const parsedReceiptLogs = transactionReceipt.logs;
       // Deprecated: check parsedReceiptLogs data (20240116 - Gibbs)
@@ -763,7 +763,7 @@ async function toEvidences(
       chain_id: Number(transaction.chain_id),
       created_timestamp: Number(block.timestamp),
       contract_address: "0x" + evidenceId.substring(0, 40),
-      state: "0",
+      state: transactionReceipt.logs[1].topics[3].substr(-1, 1),
       content: "a json content",
       creator_address: transactionReceipt.from,
       token_id: evidenceId.substring(40),
