@@ -273,8 +273,7 @@ model balance_versions {
 }
 
 model evidences_test {
-  id                  Int      @id @default(autoincrement())
-  evidence_id         String?      
+  evidence_id         String @id      
   chain_id            Int? 
   created_timestamp   Int?
   contract_address    String?

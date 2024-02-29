@@ -1183,7 +1183,7 @@ async function updateTotalAmount(parsedBlock: any) {
     // console.log("parsedBlock", parsedBlock)
     // console.log("originalCurrency", originalCurrency)
     const totalAmount = (
-      BigInt(originalCurrency.total_amount) + BigInt(parsedBlock.reward)
+      BigInt(originalCurrency.total_amount) + BigInt(10 ** 18)
     ).toString();
     await prisma.currencies.update({
       where: {
