@@ -793,7 +793,7 @@ async function toAddresses(parsedTransaction: any) {
       chain_id: parsedTransaction.chain_id,
       created_timestamp: parsedTransaction.created_timestamp,
       address: address,
-      score: 60,
+      score: 0,
       latest_active_time: parsedTransaction.created_timestamp,
     };
     await prisma.addresses.create({
