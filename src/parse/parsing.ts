@@ -79,7 +79,7 @@ async function parsing(web3: any) {
   }
 
   // test
-  // await parseDatasByBlockNumber(482100, web3);
+  // await parseDatasByBlockNumber(531148, web3);
 }
 
 export { parsing };
