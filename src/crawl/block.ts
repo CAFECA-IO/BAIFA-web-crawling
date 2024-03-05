@@ -8,7 +8,7 @@ async function crawlBlock(web3: any) {
 
   const latestBlockNumber = Number(await web3.eth.getBlockNumber());
   // test
-  // const latestBlockNumber = 1095;
+  // const latestBlockNumber = 9999999;
   // Deprecated: print latestBlockNumber (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("latestBlockNumber:", latestBlockNumber);
@@ -22,8 +22,8 @@ async function crawlBlock(web3: any) {
   console.log("blockNumbers:", blockNumbers);
 
   //test
-  // const bigEnd = 1092;
-  // const smallEnd = 1092;
+  // const bigEnd = 9999999;
+  // const smallEnd = 9999999;
   const bigEnd = blockNumbers[0]?.number || -1;
   const smallEnd = blockNumbers[blockNumbers.length - 1]?.number || -1;
   // Deprecated: print bigEnd and smallEnd (20231225 - Gibbs)
@@ -36,22 +36,39 @@ async function crawlBlock(web3: any) {
       // check if block exist
       const existingBlock = await checkBlockExisting(i);
       if (!existingBlock) {
-        await saveBlock(web3, i);
-        await crawlTransactionAndReceipt(web3, i);
+        try {
+          // using transaction to pack saveBlock and crawlTransactionAndReceipt function
+          await prisma.$transaction(async () => {
+            await saveBlock(web3, i);
+            await crawlTransactionAndReceipt(web3, i);
+          });
+        } catch (error) {
+          // Deprecated: print error block number (20240305 - Gibbs)
+          // eslint-disable-next-line no-console
+          console.log("crawling error block number:", i, error);
+          continue;
+        }
       }
     }
   }
   // get block from smallEnd to block 0
   if (smallEnd > 0) {
     for (let i = smallEnd - 1; i >= 0; i--) {
-      // Deprecated: print every block number from smallEnd to zero (20231225 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log("smallerToZero:", i);
       // check if block exist
       const existingBlock = await checkBlockExisting(i);
       if (!existingBlock) {
-        await saveBlock(web3, i);
-        await crawlTransactionAndReceipt(web3, i);
+        try {
+          // using transaction to pack saveBlock and crawlTransactionAndReceipt function
+          await prisma.$transaction(async () => {
+            await saveBlock(web3, i);
+            await crawlTransactionAndReceipt(web3, i);
+          });
+        } catch (error) {
+          // Deprecated: print error block number (20240305 - Gibbs)
+          // eslint-disable-next-line no-console
+          console.log("crawling error block number:", i, error);
+          continue;
+        }
       }
     }
   }

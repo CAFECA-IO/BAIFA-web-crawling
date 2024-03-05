@@ -85,11 +85,12 @@ async function parsing(web3: any) {
       });
       // Deprecated: print block number of parse datas (20240118 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("成功解析區塊數據，區塊號碼：", i);
+      console.log("parsing correct block number:", i);
     } catch (error) {
       // Deprecated: print error block number (20240118 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("錯誤的區塊號碼：", i, error);
+      console.log("parsing error block number:", i, error);
+      continue;
     }
   }
 
