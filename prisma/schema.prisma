@@ -90,6 +90,7 @@ model contracts {
   source_code         String?
   creator_address     String?
   created_timestamp   Int?
+  latest_active_time  Int?
   chains              chains? @relation(fields: [chain_id], references: [id])     
 }
 
