@@ -141,6 +141,7 @@ async function toContracts(
           creator_address: transactionReceipts[i].from,
           created_timestamp: Number(block.timestamp),
           source_code: await web3.eth.getCode(contractAddress),
+          latest_active_time: Number(block.timestamp),
         };
         await prisma.contracts.create({
           data: parsedContract,
@@ -148,6 +149,33 @@ async function toContracts(
         // Deprecated: check parse to contracts table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
         console.log("parsedContract", parsedContract);
+      } else {
+        // update latest_active_time
+        if (existingContract.latest_active_time < block.timestamp) {
+          await prisma.contracts.updateMany({
+            where: { contract_address: contractAddress },
+            data: { latest_active_time: Number(block.timestamp) },
+          });
+          // Deprecated: check update latest_active_time success (20240305 - Gibbs)
+          // eslint-disable-next-line no-console
+          console.log(
+            "update contract latest_active_time success, contract address: ",
+            contractAddress,
+          );
+        }
+        // update created_timestamp
+        if (existingContract.created_timestamp > block.timestamp) {
+          await prisma.contracts.updateMany({
+            where: { contract_address: contractAddress },
+            data: { created_timestamp: Number(block.timestamp) },
+          });
+          // Deprecated: check update created_timestamp success (20240305 - Gibbs)
+          // eslint-disable-next-line no-console
+          console.log(
+            "update contract created_timestamp success, contract address: ",
+            contractAddress,
+          );
+        }
       }
     }
   }
