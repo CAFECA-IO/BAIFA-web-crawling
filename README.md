@@ -14,22 +14,23 @@
 - create directory under root using sudo
   - sudo mkdir /workspace
 -  change owner's of /workspace to ${user}
-   - sudo chown -R ${user} /workspace
+  - sudo chown -R ${user} /workspace
 - go to workspace
   - cd /workspace
 - clone repo from gitHub
   - git clone https://github.com/CAFECA-IO/BAIFA-web-crawling.git
 - go to BAIFA-web-crawling
   - cd BAIFA-web-crawling
+- set up .env
+  - ls -al
+  - cp .env.sample .env
+  - vi .env
+  - press: i
+    - update database url: DATABASE_URL="postgresql://[name]:[password]@[host]:5432/[database_name]"
+  - press: Esc
+  - input: :wq
 - install package
   - npm install
-- set database url
-  - nano ~/.bash_profile
-- in nano, input below and update:[name]、[password]、[host]、[database_name]
-  - export DATABASE_URL="postgresql://[name]:[password]@[host]:5432/[database_name]"
-  - Ctrl + O > Enter > Ctrl + X
-- in terminal, apply the bash_profile
-  - source ~/.bash_profile
 - push the schema into the remote server
   - npx prisma db push --schema=./prisma/schema.prisma 
 - use pm2 to run the crawler
