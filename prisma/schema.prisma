@@ -113,6 +113,9 @@ model evidences {
   content             String?
   creator_address     String?
   token_id            String?
+  report_address      String?
+  report_name         String?
+  evidence_type       String?
   chains              chains? @relation(fields: [chain_id], references: [id])
 }
 

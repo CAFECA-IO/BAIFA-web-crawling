@@ -785,6 +785,8 @@ async function toEvidences(
     where: { evidence_id: evidenceId },
   });
   if (!existingEvidence) {
+    const report_address
+    const report_name
     const parsedEvidence = {
       // to do
       // parse transactionReceipts log:
@@ -797,6 +799,9 @@ async function toEvidences(
       content: "a json content",
       creator_address: transactionReceipt.from,
       token_id: evidenceId.substring(40),
+      report_address: report_address,
+      report_name: report_name,
+      evidence_type: "0",
     };
     await prisma.evidences.create({
       data: parsedEvidence,
