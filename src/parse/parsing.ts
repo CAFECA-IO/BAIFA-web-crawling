@@ -40,7 +40,7 @@ async function parseDatasByBlockNumber(number: number, web3: any) {
   await toContracts(block, transactionReceipts, web3, chainData.chain_id);
   await toTransactions(transactions, block, transactionReceipts, web3);
   // put report data into evidence content
-  await put_content();
+  // await put_content();
   // update total amount for 原生幣種 in currencies table after parsing each block
   await updateTotalAmount(parsedBlock);
   // Deprecated: print block number of parse datas (20240131 - Gibbs)
@@ -101,7 +101,7 @@ async function parsing(web3: any) {
 
   // test
   // await put_content();
-  await parseDatasByBlockNumber(600191, web3);
+  // await parseDatasByBlockNumber(600191, web3);
 }
 
 export { parsing };

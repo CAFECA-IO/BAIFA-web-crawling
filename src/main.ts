@@ -20,8 +20,8 @@ async function bootstrap() {
   const reportAndMint = new ReportAndMint();
 
   // Promise.all([crawler.start()]);
-  // Promise.all([crawler.start(), parser.start()]);
-  Promise.all([reportAndMint.start(), parser.start()]);
+  Promise.all([crawler.start(), parser.start()]);
+  // Promise.all([reportAndMint.start(), parser.start()]);
 }
 
 bootstrap();
