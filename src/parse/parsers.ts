@@ -334,6 +334,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
     });
     console.log("fromValue", fromValue);
     if (fromValue.length > 0) {
+      const paddedValue = padTokenValue(fromValue[0].snapshot);
       await prisma.token_balances.upsert({
         where: {
           address_currency_id: {
@@ -344,11 +345,11 @@ async function updateTokenBalances(data: any, currency_id: string) {
         create: {
           address: data.from_address,
           currency_id: currency_id,
-          value: fromValue[0].snapshot,
+          value: paddedValue,
           chain_id: data.chain_id,
         },
         update: {
-          value: fromValue[0].snapshot,
+          value: paddedValue,
         },
       });
     }
@@ -366,6 +367,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
     });
     console.log("toValue", toValue);
     if (toValue.length > 0) {
+      const paddedValue = padTokenValue(toValue[0].snapshot);
       await prisma.token_balances.upsert({
         where: {
           address_currency_id: {
@@ -376,11 +378,11 @@ async function updateTokenBalances(data: any, currency_id: string) {
         create: {
           address: data.to_address,
           currency_id: currency_id,
-          value: toValue[0].snapshot,
+          value: paddedValue,
           chain_id: data.chain_id,
         },
         update: {
-          value: toValue[0].snapshot,
+          value: paddedValue,
         },
       });
     }
@@ -971,10 +973,13 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     },
   });
   if (!existingFrom) {
+    const paddedValue = padTokenValue(
+      (BigInt(parsedTokenTransfer.value) * BigInt(-1)).toString(),
+    );
     const parsedFromTokenBalance = {
       address: parsedTokenTransferFrom,
       currency_id: parsedTokenTransfer.currency_id,
-      value: (BigInt(parsedTokenTransfer.value) * BigInt(-1)).toString(),
+      value: paddedValue,
       chain_id: parsedTokenTransfer.chain_id,
     };
     await prisma.token_balances.create({
@@ -982,15 +987,18 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     });
   } else {
     // update token_balance
+    const paddedValue = padTokenValue(
+      (
+        BigInt(existingFrom.value) - BigInt(parsedTokenTransfer.value)
+      ).toString(),
+    );
     await prisma.token_balances.updateMany({
       where: {
         address: parsedTokenTransferFrom,
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
-        value: (
-          BigInt(existingFrom.value) - BigInt(parsedTokenTransfer.value)
-        ).toString(),
+        value: paddedValue,
       },
     });
   }
@@ -1002,10 +1010,11 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     },
   });
   if (!existingTo) {
+    const paddedValue = padTokenValue(parsedTokenTransfer.value);
     const parsedToTokenBalance = {
       address: parsedTokenTransferTo,
       currency_id: parsedTokenTransfer.currency_id,
-      value: parsedTokenTransfer.value,
+      value: paddedValue,
       chain_id: parsedTokenTransfer.chain_id,
     };
     await prisma.token_balances.create({
@@ -1013,15 +1022,16 @@ async function toTokenBalances(parsedTokenTransfer: any) {
     });
   } else {
     // update token_balance
+    const paddedValue = padTokenValue(
+      (BigInt(existingTo.value) + BigInt(parsedTokenTransfer.value)).toString(),
+    );
     await prisma.token_balances.updateMany({
       where: {
         address: parsedTokenTransferTo,
         currency_id: parsedTokenTransfer.currency_id,
       },
       data: {
-        value: (
-          BigInt(existingTo.value) + BigInt(parsedTokenTransfer.value)
-        ).toString(),
+        value: paddedValue,
       },
     });
   }
@@ -1222,6 +1232,22 @@ async function updateTotalAmount(parsedBlock: any) {
       },
     });
   }
+}
+
+function padTokenValue(value) {
+  // make sure data type: string
+  const stringValue = String(value);
+  // check if is negative
+  const isNegative = stringValue.startsWith("-");
+  // calculate the number of zeros to be added, if it is negative, the length needs to be subtracted by 1 (sign bit)
+  const paddingSize =
+    64 - (isNegative ? stringValue.length - 1 : stringValue.length);
+  // pad with zeros according to whether it is negative
+  const paddedValue = isNegative
+    ? "-" + "0".repeat(paddingSize) + stringValue.substring(1)
+    : "0".repeat(paddingSize) + stringValue;
+
+  return paddedValue;
 }
 
 export {
