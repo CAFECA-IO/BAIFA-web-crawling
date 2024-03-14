@@ -785,8 +785,9 @@ async function toEvidences(
     where: { evidence_id: evidenceId },
   });
   if (!existingEvidence) {
-    const report_address
-    const report_name
+    // use abi to parse transaction receipt logs[1] data
+    const report_address = 
+    const report_name = 
     const parsedEvidence = {
       // to do
       // parse transactionReceipts log:

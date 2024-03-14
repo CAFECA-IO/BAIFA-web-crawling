@@ -48,6 +48,12 @@ const codesData = [
     meaning: "Evidence",
   },
   {
+    table_name: "transactions",
+    table_column: "type",
+    value: 99,
+    meaning: "Others",
+  },
+  {
     table_name: "public_tags",
     table_column: "target_type",
     value: 0,

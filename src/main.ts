@@ -21,6 +21,7 @@ async function bootstrap() {
 
   // Promise.all([crawler.start()]);
   Promise.all([crawler.start(), parser.start()]);
+  // Promise.all([parser.start()]);
   // Promise.all([reportAndMint.start(), parser.start()]);
 }
 
