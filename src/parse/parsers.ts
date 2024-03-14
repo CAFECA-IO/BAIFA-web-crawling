@@ -2,6 +2,9 @@ import { PrismaClient } from "@prisma/client";
 // import abi
 import abi from "./abi";
 
+// import parseReportNameAddress
+import { parseReportNameAddress } from "./parse_report_name_address";
+
 const prisma = new PrismaClient();
 
 // const parseTransacrion = async(raw) => {
@@ -785,9 +788,12 @@ async function toEvidences(
     where: { evidence_id: evidenceId },
   });
   if (!existingEvidence) {
-    // use abi to parse transaction receipt logs[1] data
-    const report_address = 
-    const report_name = 
+    // parse transaction receipt logs[1] data
+    const reportName = await parseReportNameAddress(
+      transactionReceipt.logs[1].data,
+    );
+    // 先寫死, 之後由修改上方程式提供
+    const reportAddress = "0xB2599dB0e9b295b82AE9A1693e38ee5Ea89D5c3b";
     const parsedEvidence = {
       // to do
       // parse transactionReceipts log:
@@ -800,8 +806,8 @@ async function toEvidences(
       content: "a json content",
       creator_address: transactionReceipt.from,
       token_id: evidenceId.substring(40),
-      report_address: report_address,
-      report_name: report_name,
+      report_address: reportAddress,
+      report_name: reportName,
       evidence_type: "0",
     };
     await prisma.evidences.create({
