@@ -5,8 +5,6 @@ import Parser from "./parser";
 import ReportAndMint from "./create_report_mint_nft";
 import { config } from "dotenv";
 
-
-
 if (process.env.NODE_ENV !== "production") {
   config();
 }
@@ -19,7 +17,7 @@ async function bootstrap() {
 
   const crawler = new Crawler();
   const parser = new Parser();
-  const reportAndMint = new ReportAndMint();
+  // const reportAndMint = new ReportAndMint();
 
   // Promise.all([crawler.start()]);
   Promise.all([crawler.start(), parser.start()]);
