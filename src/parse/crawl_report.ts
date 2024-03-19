@@ -2,193 +2,214 @@ import Web3 from "web3";
 import { PrismaClient } from "@prisma/client";
 
 const abi = [
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "_transactionContract",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "_timeSpanReport",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "_reports",
-          type: "address",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "constructor",
-    },
-    {
-      inputs: [
-        {
-          internalType: "bytes32[]",
-          name: "data",
-          type: "bytes32[]",
-        },
-      ],
-      name: "addTransactionRecord",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "int256",
-          name: "startTime",
-          type: "int256",
-        },
-        {
-          internalType: "int256",
-          name: "endTime",
-          type: "int256",
-        },
-        {
-          internalType: "bytes32",
-          name: "reportName",
-          type: "bytes32",
-        },
-      ],
-      name: "generateReport",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "getLatestTransactionTime",
-      outputs: [
-        {
-          internalType: "int256",
-          name: "",
-          type: "int256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "string",
-          name: "reportName",
-          type: "string",
-        },
-        {
-          internalType: "string",
-          name: "reportType",
-          type: "string",
-        },
-        {
-          internalType: "string",
-          name: "reportColumn",
-          type: "string",
-        },
-      ],
-      name: "getValue",
-      outputs: [
-        {
-          internalType: "int256",
-          name: "",
-          type: "int256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "bytes32",
-          name: "transactionType",
-          type: "bytes32",
-        },
-        {
-          internalType: "address",
-          name: "handlerAddress",
-          type: "address",
-        },
-      ],
-      name: "registerHandler",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "bytes32",
-          name: "_SP002",
-          type: "bytes32",
-        },
-        {
-          internalType: "bytes32",
-          name: "_SP003",
-          type: "bytes32",
-        },
-        {
-          internalType: "bytes32",
-          name: "_SP004",
-          type: "bytes32",
-        },
-        {
-          internalType: "bytes32",
-          name: "_reportName",
-          type: "bytes32",
-        },
-      ],
-      name: "setRate",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-  ],
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_transactionContract",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_timeSpanReport",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_reports",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32[]",
+        name: "data",
+        type: "bytes32[]",
+      },
+    ],
+    name: "addTransactionRecord",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "int256",
+        name: "startTime",
+        type: "int256",
+      },
+      {
+        internalType: "int256",
+        name: "endTime",
+        type: "int256",
+      },
+      {
+        internalType: "bytes32",
+        name: "reportName",
+        type: "bytes32",
+      },
+    ],
+    name: "generateReport",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getLatestTransactionTime",
+    outputs: [
+      {
+        internalType: "int256",
+        name: "",
+        type: "int256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "reportName",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "reportType",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "reportColumn",
+        type: "string",
+      },
+    ],
+    name: "getValue",
+    outputs: [
+      {
+        internalType: "int256",
+        name: "",
+        type: "int256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "transactionType",
+        type: "bytes32",
+      },
+      {
+        internalType: "address",
+        name: "handlerAddress",
+        type: "address",
+      },
+    ],
+    name: "registerHandler",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "_SP002",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "_SP003",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "_SP004",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "_reportName",
+        type: "bytes32",
+      },
+    ],
+    name: "setRate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 const prisma = new PrismaClient();
 
 const web3 = new Web3("https://isuncoin.baifa.io");
-
-// 從命令行參數獲取路由合約地址?
+// 美歌都是新合約？
 const reportAddress = "0xB2599dB0e9b295b82AE9A1693e38ee5Ea89D5c3b";
 
 // 創建智能合約實例
 const contractInstance = new web3.eth.Contract(abi, reportAddress);
 
-// console.log("reportAddress", reportAddress);
+async function putReport() {
+  /**
+  1. get report name, address and report id from evidences table
+  2. use crawlReport function to get report data
+  3. put report data into evidences content column 
+   **/
+  // get the evidences which lack of content data
+  const lackReportEvidences = await prisma.evidences.findMany({
+    where: {
+      content: null,
+    },
+  });
+  // loop the lackReportEvidences, use crawlReport function to get report data
+  lackReportEvidences.forEach(async (evidence) => {
+    const reportName = evidence.report_name;
+    // const reportAddress = evidence.report_address;
+    const reportIdHex = "0x" + evidence.token_id;
+    const reportId = BigInt(reportIdHex).toString();
+    const reportData = await crawlReport(reportId, reportName);
+    // update the content column of the evidence
+    await prisma.evidences.update({
+      where: {
+        evidence_id: evidence.evidence_id,
+      },
+      data: {
+        content: reportData,
+      },
+    });
+  });
+}
 
 async function getContractValue(reportName, reportType, reportColumn) {
   try {
-    // 假設getValue是合約中的一個方法
-    const value = await contractInstance.methods
+    // use getValue to get data
+    const value: bigint = await contractInstance.methods
       .getValue(reportName, reportType, reportColumn)
       .call();
-    // console.log("value", value);
 
-    // 格式化數值
+    // formatted value
     let formattedValue = web3.utils.fromWei(value, "ether");
     if (formattedValue === "0.") {
       formattedValue = "0.0";
     }
     return formattedValue;
-    // console.log("formattedValue", formattedValue);
   } catch (error) {
+    // Deprecated: print error (20240319 - Gibbs)
+    // eslint-disable-next-line no-console
     console.error(error);
   }
 }
 
-async function crawlReport(reportAddress, reportId, reportName) {
-
-}
-// 使用示例
-(async () => {
-  // await getContractValue('first_report', 'balanceSheet', 'assets.details.cryptocurrency.totalAmountFairValue');
-  const reportID = "1";
-  const reportName = "first_report";
+async function crawlReport(reportId, reportName) {
   /*startTime*/ const startTime = await getContractValue(
     reportName,
     "time",
@@ -1722,9 +1743,8 @@ async function crawlReport(reportAddress, reportId, reportName) {
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToCustomersForPerpetualContractProfits.weightedAverageCost",
     );
-  //original
   const balanceSheet = {
-    reportID: reportID,
+    reportID: reportId,
     reportName: reportName,
     assetsDetailsCryptocurrencyTotalAmountFairValue:
       assets_details_cryptocurrency_totalAmountFairValue,
@@ -1841,7 +1861,7 @@ async function crawlReport(reportAddress, reportId, reportName) {
     endTime: endTime,
   };
   const comprehensiveIncome = {
-    reportID: reportID,
+    reportID: reportId,
     reportName: reportName,
     income_details_depositFee_weightedAverageCost:
       income_details_depositFee_weightedAverageCost,
@@ -2052,7 +2072,7 @@ async function crawlReport(reportAddress, reportId, reportName) {
     endTime: endTime,
   };
   const cashFlow = {
-    reportID: reportID,
+    reportID: reportId,
     reportName: reportName,
     supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_weightedAverageCost:
       supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_weightedAverageCost,
@@ -2237,15 +2257,13 @@ async function crawlReport(reportAddress, reportId, reportName) {
     startTime: startTime,
     endTime: endTime,
   };
-  // const content = {
-  //   bs, is, cf
-  // }
-  const data = {
+  // reportData
+  const reportData = {
     balanceSheet: {
       reportID: balanceSheet.reportID,
       reportName: balanceSheet.reportName,
-      reportStartTime: balanceSheet.startTime * 10 ** 18,
-      reportEndTime: balanceSheet.endTime * 10 ** 18,
+      reportStartTime: parseFloat(balanceSheet.startTime) * 10 ** 18,
+      reportEndTime: parseFloat(balanceSheet.endTime) * 10 ** 18,
       reportType: "balance sheet",
       totalAssetsFairValue: balanceSheet.totalAssetsFairValue, //A005
       totalLiabilitiesAndEquityFairValue:
@@ -2450,8 +2468,8 @@ async function crawlReport(reportAddress, reportId, reportName) {
       reportType: "comprehensive income",
       reportID: comprehensiveIncome.reportID,
       reportName: comprehensiveIncome.reportName,
-      reportStartTime: comprehensiveIncome.startTime * 10 ** 18,
-      reportEndTime: comprehensiveIncome.endTime * 10 ** 18,
+      reportStartTime: parseFloat(comprehensiveIncome.startTime) * 10 ** 18,
+      reportEndTime: parseFloat(comprehensiveIncome.endTime) * 10 ** 18,
       netProfit: comprehensiveIncome.netProfit, //B004
       income: {
         weightedAverageCost: comprehensiveIncome.income_weightedAverageCost, //B029
@@ -2812,8 +2830,8 @@ async function crawlReport(reportAddress, reportId, reportName) {
       reportType: "cash flow sheet",
       reportID: cashFlow.reportID,
       reportName: cashFlow.reportName,
-      reportStartTime: cashFlow.startTime * 10 ** 18,
-      reportEndTime: cashFlow.endTime * 10 ** 18,
+      reportStartTime: parseFloat(cashFlow.startTime) * 10 ** 18,
+      reportEndTime: parseFloat(cashFlow.endTime) * 10 ** 18,
       supplementalScheduleOfNonCashOperatingActivities: {
         weightedAverageCost:
           cashFlow.supplementalScheduleOfNonCashOperatingActivities_weightedAverageCost, //C007
@@ -3139,909 +3157,7 @@ async function crawlReport(reportAddress, reportId, reportName) {
       },
     },
   };
-  // const data2 = {
-  //   balanceSheet: {
-  //     reportID: reportID,
-  //     reportName: reportName,
-  //     reportStartTime: startTime * 10 ** 18,
-  //     reportEndTime: endTime * 10 ** 18,
-  //     reportType: 'balance sheet',
-  //     totalAssetsFairValue: totalAssetsFairValue, //A005
-  //     totalLiabilitiesAndEquityFairValue:
-  //       totalLiabilitiesAndEquityFairValue, //A014
-  //     assets: {
-  //       totalAmountFairValue: assets_totalAmountFairValue, //A004
-  //       details: {
-  //         cryptocurrency: {
-  //           totalAmountFairValue:
-  //             assetsDetailsCryptocurrencyTotalAmountFairValue, //A001
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 assets_details_cryptocurrency_breakdown_USDT_amount, //A002
-  //               fairValue:
-  //                 assets_details_cryptocurrency_breakdown_USDT_fairValue, //A003
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 assets_details_cryptocurrency_breakdown_ETH_amount, //A015
-  //               fairValue:
-  //                 assets_details_cryptocurrency_breakdown_ETH_fairValue, //A016
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 assets_details_cryptocurrency_breakdown_BTC_amount, //A046
-  //               fairValue:
-  //                 assets_details_cryptocurrency_breakdown_BTC_fairValue, //A047
-  //             },
-  //           },
-  //         },
-  //         cashAndCashEquivalent: {
-  //           totalAmountFairValue:
-  //             assets_details_cashAndCashEquivalent_totalAmountFairValue, //A019
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 assets_details_cashAndCashEquivalent_breakdown_USD_amount, //A061
-  //               fairValue:
-  //                 assets_details_cashAndCashEquivalent_breakdown_USD_fairValue, //A062
-  //             },
-  //           },
-  //         },
-  //         accountsReceivable: {
-  //           totalAmountFairValue:
-  //             assets_details_accountsReceivable_totalAmountFairValue, //A020
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 assets_details_accountsReceivable_breakdown_USDT_amount, //A025
-  //               fairValue:
-  //                 assets_details_accountsReceivable_breakdown_USDT_fairValue, //A026
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 assets_details_accountsReceivable_breakdown_BTC_amount, //A027
-  //               fairValue:
-  //                 assets_details_accountsReceivable_breakdown_BTC_fairValue, //A028
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 assets_details_accountsReceivable_breakdown_ETH_amount, //A029
-  //               fairValue:
-  //                 assets_details_accountsReceivable_breakdown_ETH_fairValue, //A030
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     liabilities: {
-  //       totalAmountFairValue: liabilities_totalAmountFairValue, //A009
-  //       details: {
-  //         userDeposit: {
-  //           totalAmountFairValue:
-  //             liabilities_details_userDeposit_totalAmountFairValue, //A006
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 liabilities_details_userDeposit_breakdown_USDT_amount, //A007
-  //               fairValue:
-  //                 liabilities_details_userDeposit_breakdown_USDT_fairValue, //A008
-  //             },
-  //             USD: {
-  //               amount:
-  //                 liabilities_details_userDeposit_breakdown_USD_amount, //A040
-  //               fairValue:
-  //                 liabilities_details_userDeposit_breakdown_USD_fairValue, //A041
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 liabilities_details_userDeposit_breakdown_ETH_amount, //A042
-  //               fairValue:
-  //                 liabilities_details_userDeposit_breakdown_ETH_fairValue, //A043
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 liabilities_details_userDeposit_breakdown_BTC_amount, //A044
-  //               fairValue:
-  //                 liabilities_details_userDeposit_breakdown_BTC_airValue, //A045
-  //             },
-  //           },
-  //         },
-  //         accountsPayable: {
-  //           totalAmountFairValue:
-  //             liabilities_details_accountsPayable_totalAmountFairValue, //A021
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 liabilities_details_accountsPayable_breakdown_USDT_amount, //A034
-  //               fairValue:
-  //                 liabilities_details_accountsPayable_breakdown_USDT_fairValue, //A035
-  //             },
-  //             USD: {
-  //               amount:
-  //                 liabilities_details_accountsPayable_breakdown_USD_amount, //A032
-  //               fairValue:
-  //                 liabilities_details_accountsPayable_breakdown_USD_fairValue, //A033
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 liabilities_details_accountsPayable_breakdown_BTC_amount, //A036
-  //               fairValue:
-  //                 liabilities_details_accountsPayable_breakdown_BTC_fairValue, //A037
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 liabilities_details_accountsPayable_breakdown_ETH_amount, //A038
-  //               fairValue:
-  //                 liabilities_details_accountsPayable_breakdown_ETH_fairValue, //A039
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //     equity: {
-  //       totalAmountFairValue: equity_totalAmountFairValue, //A013
-  //       details: {
-  //         retainedEarning: {
-  //           totalAmountFairValue:
-  //             equity_details_retainedEarnings_totalAmountFairValue, //A010
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 equity_details_retainedEarnings_breakdown_USDT_amount, //A011
-  //               fairValue:
-  //                 equity_details_retainedEarnings_breakdown_USDT_fairValue, //A012
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 equity_details_retainedEarnings_breakdown_ETH_amount, //A017
-  //               fairValue:
-  //                 equity_details_retainedEarnings_breakdown_ETH_fairValue, //A018
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 equity_details_retainedEarnings_breakdown_BTC_amount, //A048
-  //               fairValue:
-  //                 equity_details_retainedEarnings_breakdown_BTC_fairValue, //A049
-  //             },
-  //             USD: {
-  //               amount:
-  //                 equity_details_retainedEarnings_breakdown_USD_amount, //A050
-  //               fairValue:
-  //                 equity_details_retainedEarnings_breakdown_USD_fairValue, //A051
-  //             },
-  //           },
-  //         },
-  //         otherCapitalReserve: {
-  //           fairValue:
-  //             equity_details_otherCapitalReserve_fairValue, //A052
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 equity_details_otherCapitalReserve_breakdown_USD_amount, //A053
-  //               fairValue:
-  //                 equity_details_otherCapitalReserve_breakdown_USD_fairValue, //A054
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 equity_details_otherCapitalReserve_breakdown_USDT_amount, //A055
-  //               fairValue:
-  //                 equity_details_otherCapitalReserve_breakdown_USDT_fairValue, //A056
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 equity_details_otherCapitalReserve_breakdown_ETH_amount, //A057
-  //               fairValue:
-  //                 equity_details_otherCapitalReserve_breakdown_ETH_fairValue, //A058
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 equity_details_otherCapitalReserve_breakdown_BTC_amount, //A059
-  //               fairValue:
-  //                 equity_details_otherCapitalReserve_breakdown_BTC_fairValue, //A060
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  //   comprehensiveIncome: {
-  //     reportType: 'comprehensive income',
-  //     reportID: reportID,
-  //     reportName: reportName,
-  //     reportStartTime: startTime * 10 ** 18,
-  //     reportEndTime: endTime * 10 ** 18,
-  //     netProfit: netProfit, //B004
-  //     income: {
-  //       weightedAverageCost: income_weightedAverageCost, //B029
-  //       details: {
-  //         depositFee: {
-  //           weightedAverageCost:
-  //             income_details_depositFee_weightedAverageCost, //B001
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 income_details_depositFee_breakdown_USDT_amount, //B002
-  //               weightedAverageCost:
-  //                 income_details_depositFee_breakdown_USDT_weightedAverageCost, //B003
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 income_details_depositFee_breakdown_ETH_amount, //B034
-  //               weightedAverageCost:
-  //                 income_details_depositFee_breakdown_ETH_weightedAverageCost, //B035
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 income_details_depositFee_breakdown_BTC_amount, //B036
-  //               weightedAverageCost:
-  //                 income_details_depositFee_breakdown_BTC_weightedAverageCost, //B037
-  //             },
-  //             USD: {
-  //               amount:
-  //                 income_details_depositFee_breakdown_USD_amount, //B038
-  //               weightedAverageCost:
-  //                 income_details_depositFee_breakdown_USD_weightedAverageCost, //B039
-  //             },
-  //           },
-  //         },
-  //         withdrawalFee: {
-  //           weightedAverageCost:
-  //             income_details_withdrawalFee_weightedAverageCost, //B005
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 income_details_withdrawalFee_breakdown_USDT_amount, //B006
-  //               weightedAverageCost:
-  //                 income_details_withdrawalFee_breakdown_USDT_weightedAverageCost, //B007
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 income_details_withdrawalFee_breakdown_ETH_amount, //B040
-  //               weightedAverageCost:
-  //                 income_details_withdrawalFee_breakdown_ETH_weightedAverageCost, //B041
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 income_details_withdrawalFee_breakdown_BTC_amount, //B042
-  //               weightedAverageCost:
-  //                 income_details_withdrawalFee_breakdown_BTC_weightedAverageCost, //B043
-  //             },
-  //             USD: {
-  //               amount:
-  //                 income_details_withdrawalFee_breakdown_USD_amount, //B044
-  //               weightedAverageCost:
-  //                 income_details_withdrawalFee_breakdown_USD_weightedAverageCost, //B045
-  //             },
-  //           },
-  //         },
-  //         tradingFee: {
-  //           weightedAverageCost:
-  //             income_details_transactionFee_weightedAverageCost, //B011
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 income_details_transactionFee_breakdown_ETH_amount, //B046
-  //               weightedAverageCost:
-  //                 income_details_transactionFee_breakdown_ETH_weightedAverageCost, //B047
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 income_details_transactionFee_breakdown_BTC_amount, //B048
-  //               weightedAverageCost:
-  //                 income_details_transactionFee_breakdown_BTC_weightedAverageCost, //B049
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 income_details_transactionFee_breakdown_USDT_amount, //B050
-  //               weightedAverageCost:
-  //                 income_details_transactionFee_breakdown_USDT_weightedAverageCost, //B051
-  //             },
-  //             USD: {
-  //               amount:
-  //                 income_details_transactionFee_breakdown_USD_amount, //B052
-  //               weightedAverageCost:
-  //                 income_details_transactionFee_breakdown_USD_weightedAverageCost, //B053
-  //             },
-  //           },
-  //         },
-  //       },
-  //       spreadFee: {
-  //         weightedAverageCost:
-  //           income_details_spreadFee_weightedAverageCost, //B012
-  //         breakdown: {
-  //           ETH: {
-  //             amount:
-  //               income_details_spreadFee_breakdown_ETH_amount, //B054
-  //             weightedAverageCost:
-  //               income_details_spreadFee_breakdown_ETH_weightedAverageCost, //B055
-  //           },
-  //           BTC: {
-  //             amount:
-  //               income_details_spreadFee_breakdown_BTC_amount, //B056
-  //             weightedAverageCost:
-  //               income_details_spreadFee_breakdown_BTC_weightedAverageCost, //B057
-  //           },
-  //           USDT: {
-  //             amount:
-  //               income_details_spreadFee_breakdown_USDT_amount, //B058
-  //             weightedAverageCost:
-  //               income_details_spreadFee_breakdown_USDT_weightedAverageCost, //B059
-  //           },
-  //           USD: {
-  //             amount:
-  //               income_details_spreadFee_breakdown_USD_amount, //B060
-  //             weightedAverageCost:
-  //               income_details_spreadFee_breakdown_USD_weightedAverageCost, //B061
-  //           },
-  //         },
-  //       },
-  //       liquidationFee: {
-  //         weightedAverageCost:
-  //           income_details_liquidationFee_weightedAverageCost, //B013
-  //         breakdown: {
-  //           ETH: {
-  //             amount:
-  //               income_details_liquidationFee_breakdown_ETH_amount, //B062
-  //             weightedAverageCost:
-  //               income_details_liquidationFee_breakdown_ETH_weightedAverageCost, //B063
-  //           },
-  //           BTC: {
-  //             amount:
-  //               income_details_liquidationFee_breakdown_BTC_amount, //B064
-  //             weightedAverageCost:
-  //               income_details_liquidationFee_breakdown_BTC_weightedAverageCost, //B065
-  //           },
-  //           USDT: {
-  //             amount:
-  //               income_details_liquidationFee_breakdown_USDT_amount, //B066
-  //             weightedAverageCost:
-  //               income_details_liquidationFee_breakdown_USDT_weightedAverageCost, //B067
-  //           },
-  //           USD: {
-  //             amount:
-  //               income_details_liquidationFee_breakdown_USD_amount, //B068
-  //             weightedAverageCost:
-  //               income_details_liquidationFee_breakdown_USD_weightedAverageCost, //B069
-  //           },
-  //         },
-  //       },
-  //       guaranteedStopLossFee: {
-  //         weightedAverageCost:
-  //           income_details_guaranteedStopFee_weightedAverageCost, //B014
-  //         breakdown: {
-  //           ETH: {
-  //             amount:
-  //               income_details_guaranteedStopFee_breakdown_ETH_amount, //B070
-  //             weightedAverageCost:
-  //               income_details_guaranteedStopFee_breakdown_ETH_weightedAverageCost, //B071
-  //           },
-  //           BTC: {
-  //             amount:
-  //               income_details_guaranteedStopFee_breakdown_BTC_amount, //B072
-  //             weightedAverageCost:
-  //               income_details_guaranteedStopFee_breakdown_BTC_weightedAverageCost, //B073
-  //           },
-  //           USDT: {
-  //             amount:
-  //               income_details_guaranteedStopFee_breakdown_USDT_amount, //B074
-  //             weightedAverageCost:
-  //               income_details_guaranteedStopFee_breakdown_USDT_weightedAverageCost, //B075
-  //           },
-  //           USD: {
-  //             amount:
-  //               income_details_guaranteedStopFee_breakdown_USD_amount, //B076
-  //             weightedAverageCost:
-  //               income_details_guaranteedStopFee_breakdown_USD_weightedAverageCost, //B077
-  //           },
-  //         },
-  //       },
-  //     },
+  return JSON.stringify(reportData);
+}
 
-  //     costs: {
-  //       weightedAverageCost: costs_weightedAverageCost, //B030
-  //       details: {
-  //         technicalProviderFee: {
-  //           weightedAverageCost:
-  //             costs_details_technicalProviderFee_weightedAverageCost, //B008
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 costs_details_technicalProviderFee_breakdown_ETH_amount, //B009
-  //               weightedAverageCost:
-  //                 costs_details_technicalProviderFee_breakdown_ETH_fairValue, //B010
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 costs_details_technicalProviderFee_breakdown_BTC_amount, //B094
-  //               weightedAverageCost:
-  //                 costs_details_technicalProviderFee_breakdown_BTC_weightedAverageCost, //B095
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 costs_details_technicalProviderFee_breakdown_USDT_amount, //B096
-  //               weightedAverageCost:
-  //                 costs_details_technicalProviderFee_breakdown_USDT_weightedAverageCost, //B097
-  //             },
-  //             USD: {
-  //               amount:
-  //                 costs_details_technicalProviderFee_breakdown_USD_amount, //B098
-  //               weightedAverageCost:
-  //                 costs_details_technicalProviderFee_breakdown_USD_weightedAverageCost, //B099
-  //             },
-  //           },
-  //         },
-  //         marketDataProviderFee: {
-  //           weightedAverageCost:
-  //             costs_details_marketDataProviderFee_weightedAverageCost, //B015
-  //         },
-  //         newCoinListingCost: {
-  //           weightedAverageCost:
-  //             costs_details_newCoinListingCost_weightedAverageCost, //B016
-  //         },
-  //       },
-  //     },
-
-  //     operatingExpenses: {
-  //       weightedAverageCost:
-  //         operatingExpenses_weightedAverageCost, //B031
-  //       details: {
-  //         salaries: operatingExpenses_details_salaries, //B017
-  //         rent: operatingExpenses_details_rent, //B018
-  //         marketing:
-  //           operatingExpenses_details_marketing, //B019
-  //         rebateExpenses: {
-  //           weightedAverageCost:
-  //             operatingExpenses_details_rebateExpenses_weightedAverageCost, //B020
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_ETH_amount, //B078
-  //               weightedAverageCost:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_ETH_weightedAverageCost, //B079
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_BTC_amount, //B080
-  //               weightedAverageCost:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_BTC_weightedAverageCost, //B081
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_USDT_amount, //B082
-  //               weightedAverageCost:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_USDT_weightedAverageCost, //B083
-  //             },
-  //             USD: {
-  //               amount:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_USD_amount, //B084
-  //               weightedAverageCost:
-  //                 operatingExpenses_details_rebateExpenses_breakdown_USD_weightedAverageCost, //B085
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-
-  //     financialCosts: {
-  //       weightedAverageCost:
-  //         financialCosts_weightedAverageCost, //B032
-  //       details: {
-  //         interestExpense:
-  //           financialCosts_details_interestExpense, //B021
-  //         cryptocurrencyForexLosses: {
-  //           weightedAverageCost:
-  //             financialCosts_details_cryptocurrencyForexLosses, //B022
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_ETH_amount,
-  //               weightedAverageCost:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_ETH_weightedAverageCost,
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_BTC_amount,
-  //               weightedAverageCost:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_BTC_weightedAverageCost,
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_USDT_amount,
-  //               weightedAverageCost:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_USDT_weightedAverageCost,
-  //             },
-  //             USD: {
-  //               amount:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_USD_amount,
-  //               weightedAverageCost:
-  //                 financialCosts_details_cryptocurrencyForexLosses_breakdown_USD_weightedAverageCost,
-  //             },
-  //           },
-  //         },
-  //         fiatToCryptocurrencyConversionLosses:
-  //           financialCosts_details_fiatToCryptocurrencyConversionLosses, //B023
-  //         cryptocurrencyToFiatConversionLosses:
-  //           financialCosts_details_cryptocurrencyToFiatConversionLosses, //B024
-  //         fiatToFiatConversionLosses:
-  //           financialCosts_details_fiatToFiatConversionLosses, //B025
-  //       },
-  //     },
-
-  //     otherGainLosses: {
-  //       weightedAverageCost:
-  //         otherGainsLosses_weightedAverageCost, //B033
-  //       details: {
-  //         investmentGains:
-  //           otherGainsLosses_details_investmentGains, //B026
-  //         forexGains:
-  //           otherGainsLosses_details_forexGains, //B027
-  //         cryptocurrencyGains: {
-  //           weightedAverageCost:
-  //             otherGainsLosses_details_cryptocurrencyGains_weightedAverageCosts,
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_USDT_amount, //B100
-  //               weightedAverageCost:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_USDT_weightedAverageCost, //B101
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_ETH_amount, //B102
-  //               weightedAverageCost:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_ETH_weightedAverageCost, //B103
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_BTC_amount, //B104
-  //               weightedAverageCost:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_BTC_weightedAverageCost, //B105
-  //             },
-  //             USD: {
-  //               amount:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_USD_amount,
-  //               weightedAverageCost:
-  //                 otherGainsLosses_details_cryptocurrencyGains_breakdown_USD_weightedAverageCost,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  //   cashFlow: {
-  //     reportType: 'cash flow sheet',
-  //     reportID: reportID,
-  //     reportName: reportName,
-  //     reportStartTime: startTime * 10 ** 18,
-  //     reportEndTime: endTime * 10 ** 18,
-  //     supplementalScheduleOfNonCashOperatingActivities: {
-  //       weightedAverageCost:
-  //         supplementalScheduleOfNonCashOperatingActivities_weightedAverageCost, //C007
-  //       details: {
-  //         cryptocurrenciesPaidToCustomersForPerpetualContractProfits: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToCustomersForPerpetualContractProfits_weightedAverageCost,
-  //         },
-  //         cryptocurrenciesDepositedByCustomers: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_weightedAverageCost, //C001
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_USDT_amount, //C002
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_USDT_weightedAverageCost, //C003
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_ETH_amount, //C052
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_ETH_weightedAverageCost, //C053
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_BTC_amount, //C054
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_BTC_weightedAverageCost, //C055
-  //             },
-  //           },
-  //         },
-  //         cryptocurrenciesWithdrawnByCustomers: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_weightedAverageCost, //C009
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_USDT_amount, //C010
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_USDT_weightedAverageCost, //C011
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_ETH_amount, //C056
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_ETH_weightedAverageCost, //C057
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_BTC_amount, //C058
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_BTC_weightedAverageCost, //C059
-  //             },
-  //           },
-  //         },
-  //         cryptocurrenciesPaidToSuppliersForExpenses: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_weightedAverageCost, //C012
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_ETH_amount, //C013
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_ETH_weightedAverageCost, //C014
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_USDT_amount, //C106
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_USDT_weightedAverageCost, //C107
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_BTC_amount, //C108
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_BTC_weightedAverageCost, //C109
-  //             },
-  //           },
-  //         },
-  //         cryptocurrencyInflows: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_weightedAverageCost, //C015
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_ETH_amount, //C060
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_ETH_weightedAverageCost, //C061
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_BTC_amount, //C062
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_BTC_weightedAverageCost, //C063
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_USDT_amount, //C064
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_USDT_weightedAverageCost, //C065
-  //             },
-  //           },
-  //         },
-  //         cryptocurrencyOutflows: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_weightedAverageCost, //C016
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_ETH_amount, //C066
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_ETH_weightedAverageCost, //C067
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_BTC_amount, //C068
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_BTC_weightedAverageCost, //C069
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_USDT_amount, //C070
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_USDT_weightedAverageCost, //C071
-  //             },
-  //           },
-  //         },
-  //         purchaseOfCryptocurrenciesWithNonCashConsideration: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_weightedAverageCost, //C023
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_amount, //C088
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_weightedAverageCost, //C089
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_amount, //C090
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_weightedAverageCost, //C091
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_USDT_amount, //C092
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_USDT_weightedAverageCost, //C093
-  //             },
-  //           },
-  //         },
-  //         disposalOfCryptocurrenciesForNonCashConsideration: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_weightedAverageCost, //C024
-  //           breakdown: {
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_ETH_amount, //C094
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_ETH_weightedAverageCost, //C095
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_BTC_amount, //C096
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_BTC_weightedAverageCost, //C097
-  //             },
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_USDT_amount, //C098
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_USDT_weightedAverageCost, //C099
-  //             },
-  //           },
-  //         },
-  //         cryptocurrenciesReceivedFromCustomersAsTransactionFees: {
-  //           weightedAverageCost:
-  //             supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_weightedAverageCost, //C025
-  //           breakdown: {
-  //             USDT: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_USDT_amount, //C072
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_weightedAverageCost, //C073
-  //             },
-  //             ETH: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_amount, //C074
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_weightedAverageCost, //C075
-  //             },
-  //             BTC: {
-  //               amount:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_amount, //C076
-  //               weightedAverageCost:
-  //                 supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_weightedAverageCost, //C077
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-
-  //     otherSupplementaryItems: {
-  //       details: {
-  //         relatedToNonCash: {
-  //           cryptocurrenciesEndOfPeriod: {
-  //             weightedAverageCost:
-  //               otherSupplementaryItems_details_relatedToNonCash_cryptocurrenciesEndOfPeriod_weightedAverageCost, //C051
-  //           },
-  //           cryptocurrenciesBeginningOfPeriod: {
-  //             weightedAverageCost:
-  //               otherSupplementaryItems_details_relatedToNonCash_cryptocurrenciesBeginningOfPeriod_weightedAverageCost, //C050
-  //           },
-  //         },
-  //         relatedToCash: {
-  //           netIncreaseDecreaseInCashCashEquivalentsAndRestrictedCash: {
-  //             weightedAverageCost:
-  //               otherSupplementaryItems_details_relatedToCash_netIncreaseDecreaseInCashCashEquivalentsAndRestrictedCash_weightedAverageCost, //C049
-  //           },
-  //           cryptocurrenciesBeginningOfPeriod: {
-  //             weightedAverageCost:
-  //               otherSupplementaryItems_details_relatedToCash_cryptocurrenciesBeginningOfPeriod_weightedAverageCost, //C051
-  //           },
-  //           cryptocurrenciesEndOfPeriod: {
-  //             weightedAverageCost:
-  //               otherSupplementaryItems_details_relatedToCash_cryptocurrenciesEndOfPeriod_weightedAverageCost, //C052
-  //           },
-  //         },
-  //       },
-  //     },
-
-  //     operatingActivities: {
-  //       weightedAverageCost:
-  //         operatingActivities_weightedAverageCost, //C041
-  //       details: {
-  //         cashDepositedByCustomers: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_cashDepositedByCustomers_weightedAverageCost, //C027
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 operatingActivities_details_cashDepositedByCustomers_breakdown_USD_amount, //C134
-  //               weightedAverageCost:
-  //                 operatingActivities_details_cashDepositedByCustomers_breakdown_USD_weightedAverageCost, //C135
-  //             },
-  //           },
-  //         },
-  //         cashWithdrawnByCustomers: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_cashWithdrawnByCustomers_weightedAverageCost, //C028
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 operatingActivities_details_cashDepositedByCustomers_breakdown_USD_amount, //C136
-  //               weightedAverageCost:
-  //                 operatingActivities_details_cashDepositedByCustomers_breakdown_USD_weightedAverageCost, //C137
-  //             },
-  //           },
-  //         },
-  //         purchaseOfCryptocurrencies: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_purchaseOfCryptocurrencies_weightedAverageCost, //C029
-  //         },
-  //         disposalOfCryptocurrencies: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_disposalOfCryptocurrencies_weightedAverageCost, //C030
-  //         },
-  //         cashReceivedFromCustomersAsTransactionFee: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_weightedAverageCost, //C031
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_breakdown_USD_amount, //C138
-  //               weightedAverageCost:
-  //                 operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_breakdown_USD_weightedAverageCost, //C139
-  //             },
-  //           },
-  //         },
-  //         cashPaidToSuppliersForExpenses: {
-  //           weightedAverageCost:
-  //             operatingActivities_details_cashPaidToSuppliersForExpenses_weightedAverageCost, //C034
-  //           breakdown: {
-  //             USD: {
-  //               amount:
-  //                 operatingActivities_details_cashPaidToSuppliersForExpenses_breakdown_USD_amount, //C140
-  //               weightedAverageCost:
-  //                 operatingActivities_details_cashPaidToSuppliersForExpenses_breakdown_USD_weightedAverageCost, //C141
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-
-  //     investingActivities: {
-  //       weightedAverageCost:
-  //         investingActivities_weightedAverageCost, //C042
-  //     },
-
-  //     financingActivities: {
-  //       weightedAverageCost:
-  //         financingActivities_weightedAverageCost, //C048
-  //       details: {
-  //         proceedsFromIssuanceOfCommonStock: {
-  //           weightedAverageCost:
-  //             financingActivities_details_proceedsFromIssuanceOfCommonStock_weightedAverageCost, //C043
-  //         },
-  //         longTermDebt: {
-  //           weightedAverageCost:
-  //             financingActivities_details_longTermDebt_weightedAverageCost, //C044
-  //         },
-  //         shortTermBorrowings: {
-  //           weightedAverageCost:
-  //             financingActivities_details_shortTermBorrowings_weightedAverageCost, //C045
-  //         },
-  //         paymentsOfDividends: {
-  //           weightedAverageCost:
-  //             financingActivities_details_paymentsOfDividends_weightedAverageCost, //C046
-  //         },
-  //         treasuryStock: {
-  //           weightedAverageCost:
-  //             financingActivities_details_treasuryStock_weightedAverageCost, //C047
-  //         },
-  //       },
-  //     },
-  //   },
-  // };
-  console.log(JSON.stringify(data, null, 2));
-})();
+export { putReport };
