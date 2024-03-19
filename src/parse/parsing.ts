@@ -85,9 +85,13 @@ async function parsing(web3: any) {
   for (let i = startBlockNumber; i <= endBlockNumber; i++) {
     try {
       // pack parseDatasByBlockNumber function in a transaction
-      await prisma.$transaction(async () => {
-        await parseDatasByBlockNumber(i, web3);
-      });
+      await prisma.$transaction(
+        async () => {
+          await parseDatasByBlockNumber(i, web3);
+        },
+        // info: (20240319 - Gibbs) set transaction timeout to 5 minutes
+        { timeout: 1000 * 60 * 5 },
+      );
       // Deprecated: print block number of parse datas (20240118 - Gibbs)
       // eslint-disable-next-line no-console
       console.log("parsing correct block number:", i);

@@ -38,10 +38,14 @@ async function crawlBlock(web3: any) {
       if (!existingBlock) {
         try {
           // using transaction to pack saveBlock and crawlTransactionAndReceipt function
-          await prisma.$transaction(async () => {
-            await saveBlock(web3, i);
-            await crawlTransactionAndReceipt(web3, i);
-          });
+          await prisma.$transaction(
+            async () => {
+              await saveBlock(web3, i);
+              await crawlTransactionAndReceipt(web3, i);
+            },
+            // info: (20240319 - Gibbs) set transaction timeout to 5 minutes
+            { timeout: 1000 * 60 * 5 },
+          );
         } catch (error) {
           // Deprecated: print error block number (20240305 - Gibbs)
           // eslint-disable-next-line no-console
@@ -59,10 +63,14 @@ async function crawlBlock(web3: any) {
       if (!existingBlock) {
         try {
           // using transaction to pack saveBlock and crawlTransactionAndReceipt function
-          await prisma.$transaction(async () => {
-            await saveBlock(web3, i);
-            await crawlTransactionAndReceipt(web3, i);
-          });
+          await prisma.$transaction(
+            async () => {
+              await saveBlock(web3, i);
+              await crawlTransactionAndReceipt(web3, i);
+            },
+            // info: (20240319 - Gibbs) set transaction timeout to 5 minutes
+            { timeout: 1000 * 60 * 5 },
+          );
         } catch (error) {
           // Deprecated: print error block number (20240305 - Gibbs)
           // eslint-disable-next-line no-console
