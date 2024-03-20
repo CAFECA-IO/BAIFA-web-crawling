@@ -1,4 +1,4 @@
-import Web3 from "web3";
+import { ethers } from "ethers";
 import { PrismaClient } from "@prisma/client";
 
 const abi = [
@@ -151,13 +151,15 @@ const abi = [
 
 const prisma = new PrismaClient();
 
-const web3 = new Web3("https://isuncoin.baifa.io");
 // 美歌都是新合約？
 const reportAddress = "0xB2599dB0e9b295b82AE9A1693e38ee5Ea89D5c3b";
 
 // 創建智能合約實例
-const contractInstance = new web3.eth.Contract(abi, reportAddress);
+const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);
 
+const contractInstance = new ethers.Contract(reportAddress, abi, provider);
+
+///
 async function putReport() {
   /**
   1. get report name, address and report id from evidences table
@@ -192,12 +194,13 @@ async function putReport() {
 async function getContractValue(reportName, reportType, reportColumn) {
   try {
     // use getValue to get data
-    const value: bigint = await contractInstance.methods
-      .getValue(reportName, reportType, reportColumn)
-      .call();
-
+    const value = await contractInstance.getValue(
+      reportName,
+      reportType,
+      reportColumn,
+    );
     // formatted value
-    let formattedValue = web3.utils.fromWei(value, "ether");
+    let formattedValue = ethers.formatUnits(value, 18);
     if (formattedValue === "0.") {
       formattedValue = "0.0";
     }
