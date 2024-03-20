@@ -789,11 +789,9 @@ async function toEvidences(
   });
   if (!existingEvidence) {
     // parse transaction receipt logs[1] data
-    const reportName = await parseReportNameAddress(
+    const { cleanReportName, reportAddress } = await parseReportNameAddress(
       transactionReceipt.logs[1]?.data || null,
     );
-    // 先寫死, 之後由修改上方程式提供
-    const reportAddress = "0xB2599dB0e9b295b82AE9A1693e38ee5Ea89D5c3b";
     const parsedEvidence = {
       // to do
       // parse transactionReceipts log:
@@ -806,7 +804,7 @@ async function toEvidences(
       creator_address: transactionReceipt.from,
       token_id: evidenceId.substring(40),
       report_address: reportAddress,
-      report_name: reportName,
+      report_name: cleanReportName,
       evidence_type: "0",
     };
     await prisma.evidences.create({

@@ -5,7 +5,7 @@ const web3 = new Web3("https://isuncoin.baifa.io/");
 // 解析reportName
 async function parseReportNameAddress(hexData) {
   // transaction receipt logs[1] data 長度
-  if (hexData.length === 578) {
+  if (hexData && hexData.length === 578) {
     // 偏移量是從data開始的第一個字（32位元組，即64個十六進制字符）
     const offset = parseInt(hexData.slice(2, 66), 16) * 2;
     // console.log('offset', offset);
@@ -22,9 +22,11 @@ async function parseReportNameAddress(hexData) {
     const reportName = web3.utils.hexToAscii(reportNameAscii);
     // 清除不可見字符
     const cleanReportName = reportName.replace(/\0/g, "");
-    return cleanReportName;
+    // report address
+    const reportAddress = "0x" + hexData.slice(282, 322);
+    return { cleanReportName, reportAddress };
   } else {
-    return null;
+    return { cleanReportName: null, reportAddress: null };
   }
 }
 
