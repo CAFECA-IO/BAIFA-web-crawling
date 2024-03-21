@@ -151,34 +151,43 @@ const abi = [
 
 const prisma = new PrismaClient();
 
-// 美歌都是新合約？
-const reportAddress = "0xB2599dB0e9b295b82AE9A1693e38ee5Ea89D5c3b";
-
 // 創建智能合約實例
 const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);
 
-const contractInstance = new ethers.Contract(reportAddress, abi, provider);
+// 用於存儲 contractInstance 的快取
+const contractInstancesCache = {};
 
-///
-async function putReport() {
+async function putReport(lackReportEvidences) {
   /**
   1. get report name, address and report id from evidences table
   2. use crawlReport function to get report data
   3. put report data into evidences content column 
    **/
-  // get the evidences which lack of content data
-  const lackReportEvidences = await prisma.evidences.findMany({
-    where: {
-      content: null,
-    },
-  });
+  // get the evidences which lack of content data, but have report address
+  console.log("put report starting...");
   // loop the lackReportEvidences, use crawlReport function to get report data
-  lackReportEvidences.forEach(async (evidence) => {
+  // 將所有異步操作包裝成 promise 並存入一個陣列中
+  const updatePromises = lackReportEvidences.map(async (evidence) => {
+    const reportAddress = evidence.report_address;
+    // 檢查快取中是否已經有對應的 contractInstance
+    if (!contractInstancesCache[reportAddress]) {
+      // 如果沒有，則創建一個新的 contractInstance 並存入快取
+      contractInstancesCache[reportAddress] = new ethers.Contract(
+        reportAddress,
+        abi,
+        provider,
+      );
+    }
+    // 從快取中獲取 contractInstance
+    const contractInstance = contractInstancesCache[reportAddress];
     const reportName = evidence.report_name;
-    // const reportAddress = evidence.report_address;
     const reportIdHex = "0x" + evidence.token_id;
     const reportId = BigInt(reportIdHex).toString();
-    const reportData = await crawlReport(reportId, reportName);
+    const reportData = await crawlReport(
+      reportId,
+      reportName,
+      contractInstance,
+    );
     // update the content column of the evidence
     await prisma.evidences.update({
       where: {
@@ -189,9 +198,22 @@ async function putReport() {
       },
     });
   });
+  // 等待所有更新操作完成
+  await Promise.all(updatePromises)
+    .then(() => {
+      console.log("put all report success");
+    })
+    .catch((error) => {
+      console.error("An error occurred:", error);
+    });
 }
 
-async function getContractValue(reportName, reportType, reportColumn) {
+async function getContractValue(
+  reportName,
+  reportType,
+  reportColumn,
+  contractInstance,
+) {
   try {
     // use getValue to get data
     const value = await contractInstance.getValue(
@@ -212,131 +234,154 @@ async function getContractValue(reportName, reportType, reportColumn) {
   }
 }
 
-async function crawlReport(reportId, reportName) {
+async function crawlReport(reportId, reportName, contractInstance) {
+  console.log("start crawling report, report id", reportId);
   /*startTime*/ const startTime = await getContractValue(
     reportName,
     "time",
     "startTime",
+    contractInstance,
   );
   /*endTime*/ const endTime = await getContractValue(
     reportName,
     "time",
     "endTime",
+    contractInstance,
   );
   /*A001*/ const assets_details_cryptocurrency_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.totalAmountFairValue",
+      contractInstance,
     );
   /*A002*/ const assets_details_cryptocurrency_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A003*/ const assets_details_cryptocurrency_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A004*/ const assets_totalAmountFairValue = await getContractValue(
     reportName,
     "balanceSheet",
     "assets.totalAmountFairValue",
+    contractInstance,
   );
   /*A005*/ const totalAssetsFairValue = await getContractValue(
     reportName,
     "balanceSheet",
     "totalAssetsFairValue",
+    contractInstance,
   );
   /*A006*/ const liabilities_details_userDeposit_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.totalAmountFairValue",
+      contractInstance,
     );
   /*A007*/ const liabilities_details_userDeposit_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A008*/ const liabilities_details_userDeposit_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A009*/ const liabilities_totalAmountFairValue = await getContractValue(
     reportName,
     "balanceSheet",
     "liabilities.totalAmountFairValue",
+    contractInstance,
   );
   /*A010*/ const equity_details_retainedEarnings_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.totalAmountFairValue",
+      contractInstance,
     );
   /*A011*/ const equity_details_retainedEarnings_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A012*/ const equity_details_retainedEarnings_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A013*/ const equity_totalAmountFairValue = await getContractValue(
     reportName,
     "balanceSheet",
     "equity.totalAmountFairValue",
+    contractInstance,
   );
   /*A014*/ const totalLiabilitiesAndEquityFairValue = await getContractValue(
     reportName,
     "balanceSheet",
     "totalLiabilitiesAndEquityFairValue",
+    contractInstance,
   );
   /*A015*/ const assets_details_cryptocurrency_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A016*/ const assets_details_cryptocurrency_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A017*/ const equity_details_retainedEarnings_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A018*/ const equity_details_retainedEarnings_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A019*/ const assets_details_cashAndCashEquivalent_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cashAndCashEquivalent.totalAmountFairValue",
+      contractInstance,
     );
   /*A020*/ const assets_details_accountsReceivable_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.totalAmountFairValue",
+      contractInstance,
     );
 
   /*A022*/
@@ -346,344 +391,402 @@ async function crawlReport(reportId, reportName) {
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A026*/ const assets_details_accountsReceivable_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A027*/ const assets_details_accountsReceivable_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A028*/ const assets_details_accountsReceivable_breakdown_BTC_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A029*/ const assets_details_accountsReceivable_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A030*/ const assets_details_accountsReceivable_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.accountsReceivable.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A031*/ const liabilities_details_accountsPayable_totalAmountFairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.totalAmountFairValue",
+      contractInstance,
     );
   /*A032*/ const liabilities_details_accountsPayable_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       " liabilities.details.accountsPayable.breakdown.USD.amount",
+      contractInstance,
     );
   /*A033*/ const liabilities_details_accountsPayable_breakdown_USD_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.USD.fairValue",
+      contractInstance,
     );
   /*A034*/ const liabilities_details_accountsPayable_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A035*/ const liabilities_details_accountsPayable_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A036*/ const liabilities_details_accountsPayable_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A037*/ const liabilities_details_accountsPayable_breakdown_BTC_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A038*/ const liabilities_details_accountsPayable_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A039*/ const liabilities_details_accountsPayable_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.accountsPayable.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A040*/ const liabilities_details_userDeposit_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.USD.amount",
+      contractInstance,
     );
   /*A041*/ const liabilities_details_userDeposit_breakdown_USD_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.USD.fairValue",
+      contractInstance,
     );
   /*A042*/ const liabilities_details_userDeposit_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A043*/ const liabilities_details_userDeposit_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A044*/ const liabilities_details_userDeposit_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A045*/ const liabilities_details_userDeposit_breakdown_BTC_airValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "liabilities.details.userDeposit.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A046*/ const assets_details_cryptocurrency_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A047*/ const assets_details_cryptocurrency_breakdown_BTC_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cryptocurrency.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A048*/ const equity_details_retainedEarnings_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A049*/ const equity_details_retainedEarnings_breakdown_BTC_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A050*/ const equity_details_retainedEarnings_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.USD.amount",
+      contractInstance,
     );
   /*A051*/ const equity_details_retainedEarnings_breakdown_USD_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.retainedEarnings.breakdown.USD.fairValue",
+      contractInstance,
     );
   /*A052*/ const equity_details_otherCapitalReserve_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.fairValue",
+      contractInstance,
     );
   /*A053*/ const equity_details_otherCapitalReserve_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.USD.amount",
+      contractInstance,
     );
   /*A054*/ const equity_details_otherCapitalReserve_breakdown_USD_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.USD.fairValue",
+      contractInstance,
     );
   /*A055*/ const equity_details_otherCapitalReserve_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.USDT.amount",
+      contractInstance,
     );
   /*A056*/ const equity_details_otherCapitalReserve_breakdown_USDT_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.USDT.fairValue",
+      contractInstance,
     );
   /*A057*/ const equity_details_otherCapitalReserve_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.ETH.amount",
+      contractInstance,
     );
   /*A058*/ const equity_details_otherCapitalReserve_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*A059*/ const equity_details_otherCapitalReserve_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.BTC.amount",
+      contractInstance,
     );
   /*A060*/ const equity_details_otherCapitalReserve_breakdown_BTC_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "equity.details.otherCapitalReserve.breakdown.BTC.fairValue",
+      contractInstance,
     );
   /*A061*/ const assets_details_cashAndCashEquivalent_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cashAndCashEquivalent.breakdown.USD.amount",
+      contractInstance,
     );
   /*A062*/ const assets_details_cashAndCashEquivalent_breakdown_USD_fairValue =
     await getContractValue(
       reportName,
       "balanceSheet",
       "assets.details.cashAndCashEquivalent.breakdown.USD.fairValue",
+      contractInstance,
     );
   /*B001*/ const income_details_depositFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.weightedAverageCost",
+      contractInstance,
     );
   /*B002*/ const income_details_depositFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B003*/ const income_details_depositFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B004*/ const netProfit = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "netProfit",
+    contractInstance,
   );
   /*B005*/ const income_details_withdrawalFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.weightedAverageCost",
+      contractInstance,
     );
   /*B006*/ const income_details_withdrawalFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B007*/ const income_details_withdrawalFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B008*/ const costs_details_technicalProviderFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.weightedAverageCost",
+      contractInstance,
     );
   /*B009*/ const costs_details_technicalProviderFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B010*/ const costs_details_technicalProviderFee_breakdown_ETH_fairValue =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.ETH.fairValue",
+      contractInstance,
     );
   /*B011*/ const income_details_transactionFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.weightedAverageCost",
+      contractInstance,
     );
   /*B012*/ const income_details_spreadFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.weightedAverageCost",
+      contractInstance,
     );
   /*B013*/ const income_details_liquidationFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.weightedAverageCost",
+      contractInstance,
     );
   /*B014*/ const income_details_guaranteedStopFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.weightedAverageCost",
+      contractInstance,
     );
   /*B015*/ const costs_details_marketDataProviderFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.marketDataProviderFee.weightedAverageCost",
+      contractInstance,
     );
   /*B016*/ const costs_details_newCoinListingCost_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.newCoinListingCost.weightedAverageCost",
+      contractInstance,
     );
   /*B017*/ const operatingExpenses_details_salaries = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "operatingExpenses.details.salaries",
+    contractInstance,
   );
   /*B018*/ const operatingExpenses_details_rent = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "operatingExpenses.details.rent",
+    contractInstance,
   );
   /*B019*/ const operatingExpenses_details_marketing = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "operatingExpenses.details.marketing",
+    contractInstance,
   );
   /*B020*/ const operatingExpenses_details_rebateExpenses_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.weightedAverageCost",
+      contractInstance,
     );
 
   /*B021*/ const financialCosts_details_interestExpense =
@@ -691,517 +794,604 @@ async function crawlReport(reportId, reportName) {
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.interestExpense",
+      contractInstance,
     );
   /*B022*/ const financialCosts_details_cryptocurrencyForexLosses =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses",
+      contractInstance,
     );
   /*B023*/ const financialCosts_details_fiatToCryptocurrencyConversionLosses =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.fiatToCryptocurrencyConversionLosses",
+      contractInstance,
     );
   /*B024*/ const financialCosts_details_cryptocurrencyToFiatConversionLosses =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyToFiatConversionLosses",
+      contractInstance,
     );
   /*B025*/ const financialCosts_details_fiatToFiatConversionLosses =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.fiatToFiatConversionLosses",
+      contractInstance,
     );
   /*B026*/ const otherGainsLosses_details_investmentGains =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.investmentGains",
+      contractInstance,
     );
   /*B027*/ const otherGainsLosses_details_forexGains = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "otherGainsLosses.details.forexGains",
+    contractInstance,
   );
   /*B028*/ const otherGainsLosses_details_cryptocurrencyGains_weightedAverageCosts =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.weightedAverageCosts",
+      contractInstance,
     );
 
   /*B029*/ const income_weightedAverageCost = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "income.weightedAverageCost",
+    contractInstance,
   );
   /*B030*/ const costs_weightedAverageCost = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "costs.weightedAverageCost",
+    contractInstance,
   );
   /*B031*/ const operatingExpenses_weightedAverageCost = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "operatingExpenses.weightedAverageCost",
+    contractInstance,
   );
   /*B032*/ const financialCosts_weightedAverageCost = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "financialCosts.weightedAverageCost",
+    contractInstance,
   );
   /*B033*/ const otherGainsLosses_weightedAverageCost = await getContractValue(
     reportName,
     "comprehensiveIncome",
     "otherGainsLosses.weightedAverageCost",
+    contractInstance,
   );
   /*B034*/ const income_details_depositFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B035*/ const income_details_depositFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B036*/ const income_details_depositFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B037*/ const income_details_depositFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B038*/ const income_details_depositFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B039*/ const income_details_depositFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.depositFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B040*/ const income_details_withdrawalFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B041*/ const income_details_withdrawalFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B042*/ const income_details_withdrawalFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B043*/ const income_details_withdrawalFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B044*/ const income_details_withdrawalFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B045*/ const income_details_withdrawalFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.withdrawalFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B046*/ const income_details_transactionFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B047*/ const income_details_transactionFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B048*/ const income_details_transactionFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B049*/ const income_details_transactionFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B050*/ const income_details_transactionFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B051*/ const income_details_transactionFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B052*/ const income_details_transactionFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B053*/ const income_details_transactionFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.transactionFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B054*/ const income_details_spreadFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       " income.details.spreadFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B055*/ const income_details_spreadFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B056*/ const income_details_spreadFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B057*/ const income_details_spreadFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B058*/ const income_details_spreadFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B059*/ const income_details_spreadFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B060*/ const income_details_spreadFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B061*/ const income_details_spreadFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.spreadFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B062*/ const income_details_liquidationFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B063*/ const income_details_liquidationFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B064*/ const income_details_liquidationFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B065*/ const income_details_liquidationFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B066*/ const income_details_liquidationFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B067*/ const income_details_liquidationFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       " income.details.liquidationFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B068*/ const income_details_liquidationFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B069*/ const income_details_liquidationFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.liquidationFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B070*/ const income_details_guaranteedStopFee_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B071*/ const income_details_guaranteedStopFee_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B072*/ const income_details_guaranteedStopFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B073*/ const income_details_guaranteedStopFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B074*/ const income_details_guaranteedStopFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       " income.details.guaranteedStopFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B075*/ const income_details_guaranteedStopFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B076*/ const income_details_guaranteedStopFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B077*/ const income_details_guaranteedStopFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "income.details.guaranteedStopFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B078*/ const operatingExpenses_details_rebateExpenses_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B079*/ const operatingExpenses_details_rebateExpenses_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B080*/ const operatingExpenses_details_rebateExpenses_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B081*/ const operatingExpenses_details_rebateExpenses_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B082*/ const operatingExpenses_details_rebateExpenses_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B083*/ const operatingExpenses_details_rebateExpenses_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B084*/ const operatingExpenses_details_rebateExpenses_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.USD.amount",
+      contractInstance,
     );
   /*B085*/ const operatingExpenses_details_rebateExpenses_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "operatingExpenses.details.rebateExpenses.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B086*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B087*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B088*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B089*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
-      "financialCosts.details.cryptocurrencyForexLosses.breakdown.BTC.weightedAverageCost,",
+      "financialCosts.details.cryptocurrencyForexLosses.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B090*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B091*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B092*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.USD.amount",
+      contractInstance,
     );
   /*B093*/ const financialCosts_details_cryptocurrencyForexLosses_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "financialCosts.details.cryptocurrencyForexLosses.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B094*/ const costs_details_technicalProviderFee_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B095*/ const costs_details_technicalProviderFee_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B096*/ const costs_details_technicalProviderFee_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B097*/ const costs_details_technicalProviderFee_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B098*/ const costs_details_technicalProviderFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*B099*/ const costs_details_technicalProviderFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "costs.details.technicalProviderFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*B100*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.USDT.amount",
+      contractInstance,
     );
   /*B101*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*B102*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.ETH.amount",
+      contractInstance,
     );
   /*B103*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*B104*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.BTC.amount",
+      contractInstance,
     );
   /*B105*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*B106*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.USD.amount",
+      contractInstance,
     );
   /*B107*/ const otherGainsLosses_details_cryptocurrencyGains_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "comprehensiveIncome",
       "otherGainsLosses.details.cryptocurrencyGains.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
 
   /*C001*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_weightedAverageCost =
@@ -1209,216 +1399,252 @@ async function crawlReport(reportId, reportName) {
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.weightedAverageCost",
+      contractInstance,
     );
   /*C002*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C003*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C004*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.weightedAverageCost",
+      contractInstance,
     );
   /*C005*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C006*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C007*/ const supplementalScheduleOfNonCashOperatingActivities_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.weightedAverageCost",
+      contractInstance,
     );
   /*C008*/ const otherSupplementaryItems_details_relatedToNonCash_cryptocurrenciesEndOfPeriod_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "otherSupplementaryItems.details.relatedToNonCash.cryptocurrenciesEndOfPeriod.weightedAverageCost",
+      contractInstance,
     );
   /*C009*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       " supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.weightedAverageCost",
+      contractInstance,
     );
   /*C010*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C011*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C012*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.weightedAverageCost",
+      contractInstance,
     );
   /*C013*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C014*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C015*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.weightedAverageCost",
+      contractInstance,
     );
   /*C016*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.weightedAverageCost",
+      contractInstance,
     );
   /*C023*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.weightedAverageCost",
+      contractInstance,
     );
   /*C024*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.weightedAverageCost",
+      contractInstance,
     );
   /*C025*/ const otherSupplementaryItems_details_relatedToNonCash_cryptocurrenciesBeginningOfPeriod_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "otherSupplementaryItems.details.relatedToNonCash.cryptocurrenciesBeginningOfPeriod.weightedAverageCost",
+      contractInstance,
     );
   /*C027*/ const operatingActivities_details_cashDepositedByCustomers_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashDepositedByCustomers.weightedAverageCost",
+      contractInstance,
     );
   /*C028*/ const operatingActivities_details_cashWithdrawnByCustomers_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashWithdrawnByCustomers.weightedAverageCost",
+      contractInstance,
     );
   /*C029*/ const operatingActivities_details_purchaseOfCryptocurrencies_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.purchaseOfCryptocurrencies.weightedAverageCost",
+      contractInstance,
     );
   /*C030*/ const operatingActivities_details_disposalOfCryptocurrencies_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.disposalOfCryptocurrencies.weightedAverageCost",
+      contractInstance,
     );
   /*C031*/ const operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashReceivedFromCustomersAsTransactionFee.weightedAverageCost",
+      contractInstance,
     );
   /*C034*/ const operatingActivities_details_cashPaidToSuppliersForExpenses_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashPaidToSuppliersForExpenses.weightedAverageCost",
+      contractInstance,
     );
   /*C037*/ const operatingActivities_details_insuranceFundForPerpetualContracts_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.insuranceFundForPerpetualContracts.weightedAverageCost",
+      contractInstance,
     );
   /*C041*/ const operatingActivities_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.weightedAverageCost",
+      contractInstance,
     );
   /*C042*/ const investingActivities_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "investingActivities.weightedAverageCost",
+      contractInstance,
     );
   /*C043*/ const financingActivities_details_proceedsFromIssuanceOfCommonStock_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.details.proceedsFromIssuanceOfCommonStock.weightedAverageCost",
+      contractInstance,
     );
   /*C044*/ const financingActivities_details_longTermDebt_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.details.longTermDebt.weightedAverageCost",
+      contractInstance,
     );
   /*C045*/ const financingActivities_details_shortTermBorrowings_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.details.shortTermBorrowings.weightedAverageCost",
+      contractInstance,
     );
   /*C046*/ const financingActivities_details_paymentsOfDividends_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.details.paymentsOfDividends.weightedAverageCost",
+      contractInstance,
     );
   /*C047*/ const financingActivities_details_treasuryStock_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.details.treasuryStock.weightedAverageCost",
+      contractInstance,
     );
   /*C048*/ const financingActivities_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "financingActivities.weightedAverageCost",
+      contractInstance,
     );
   /*C049*/ const otherSupplementaryItems_details_relatedToCash_netIncreaseDecreaseInCashCashEquivalentsAndRestrictedCash_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "otherSupplementaryItems.details.relatedToCash.netIncreaseDecreaseInCashCashEquivalentsAndRestrictedCash.weightedAverageCost",
+      contractInstance,
     );
   /*C050*/ const otherSupplementaryItems_details_relatedToCash_cryptocurrenciesBeginningOfPeriod_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "otherSupplementaryItems.details.relatedToCash.cryptocurrenciesBeginningOfPeriod.weightedAverageCost",
+      contractInstance,
     );
 
   /*C051*/ const otherSupplementaryItems_details_relatedToCash_cryptocurrenciesEndOfPeriod_weightedAverageCost =
@@ -1426,6 +1652,7 @@ async function crawlReport(reportId, reportName) {
       reportName,
       "cashFlow",
       "otherSupplementaryItems.details.relatedToCash.cryptocurrenciesEndOfPeriod.weightedAverageCost",
+      contractInstance,
     );
 
   /*C052*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_ETH_amount =
@@ -1433,318 +1660,371 @@ async function crawlReport(reportId, reportName) {
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C053*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C054*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C055*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesDepositedByCustomers_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesDepositedByCustomers.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C056*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C057*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C058*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesWithdrawnByCustomers.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C059*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesWithdrawnByCustomers_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C060*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.weightedAverageCost",
+      contractInstance,
     );
   /*C061*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C062*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C063*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C064*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C065*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyInflows_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyInflows.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C066*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C067*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C068*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C069*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C070*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C071*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrencyOutflows_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrencyOutflows.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C072*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C073*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C074*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C075*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesReceivedFromCustomersAsTransactionFees_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesReceivedFromCustomersAsTransactionFees.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C088*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C089*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C090*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C091*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C092*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C093*/ const supplementalScheduleOfNonCashOperatingActivities_details_purchaseOfCryptocurrenciesWithNonCashConsideration_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.purchaseOfCryptocurrenciesWithNonCashConsideration.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C094*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_ETH_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.ETH.amount",
+      contractInstance,
     );
   /*C095*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_ETH_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.ETH.weightedAverageCost",
+      contractInstance,
     );
   /*C096*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C097*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C098*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C099*/ const supplementalScheduleOfNonCashOperatingActivities_details_disposalOfCryptocurrenciesForNonCashConsideration_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.disposalOfCryptocurrenciesForNonCashConsideration.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C106*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_USDT_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.USDT.amount",
+      contractInstance,
     );
   /*C107*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_USDT_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.USDT.weightedAverageCost",
+      contractInstance,
     );
   /*C108*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_BTC_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.BTC.amount",
+      contractInstance,
     );
   /*C109*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToSuppliersForExpenses_breakdown_BTC_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       " supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToSuppliersForExpenses.breakdown.BTC.weightedAverageCost",
+      contractInstance,
     );
   /*C134*/ const operatingActivities_details_cashDepositedByCustomers_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashDepositedByCustomers.breakdown.USD.amount",
+      contractInstance,
     );
   /*C135*/ const operatingActivities_details_cashDepositedByCustomers_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashDepositedByCustomers.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C136*/ const operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashReceivedFromCustomersAsTransactionFee.breakdown.USD.amount",
+      contractInstance,
     );
   /*C137*/ const operatingActivities_details_cashReceivedFromCustomersAsTransactionFee_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashReceivedFromCustomersAsTransactionFee.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C138*/ const operatingActivities_details_cashPaidToSuppliersForExpenses_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashPaidToSuppliersForExpenses.breakdown.USD.amount",
+      contractInstance,
     );
   /*C139*/ const operatingActivities_details_cashPaidToSuppliersForExpenses_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashPaidToSuppliersForExpenses.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C140*/ const operatingActivities_details_cashWithdrawnByCustomers_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashWithdrawnByCustomers.breakdown.USD.amount",
+      contractInstance,
     );
   /*C141*/ const operatingActivities_details_cashWithdrawnByCustomers_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.cashWithdrawnByCustomers.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C142*/ const operatingActivities_details_purchaseOfCryptocurrencies_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.purchaseOfCryptocurrencies.breakdown.USD.amount",
+      contractInstance,
     );
   /*C143*/ const operatingActivities_details_purchaseOfCryptocurrencies_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.purchaseOfCryptocurrencies.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C144*/ const operatingActivities_details_disposalOfCryptocurrencies_breakdown_USD_amount =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.disposalOfCryptocurrencies.breakdown.USD.amount",
+      contractInstance,
     );
   /*C145*/ const operatingActivities_details_disposalOfCryptocurrencies_breakdown_USD_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "operatingActivities.details.disposalOfCryptocurrencies.breakdown.USD.weightedAverageCost",
+      contractInstance,
     );
   /*C146*/ const supplementalScheduleOfNonCashOperatingActivities_details_cryptocurrenciesPaidToCustomersForPerpetualContractProfits_weightedAverageCost =
     await getContractValue(
       reportName,
       "cashFlow",
       "supplementalScheduleOfNonCashOperatingActivities.details.cryptocurrenciesPaidToCustomersForPerpetualContractProfits.weightedAverageCost",
+      contractInstance,
     );
   const balanceSheet = {
     reportID: reportId,
@@ -3160,7 +3440,37 @@ async function crawlReport(reportId, reportName) {
       },
     },
   };
+  console.log("complete crawling report, report id", reportId);
   return JSON.stringify(reportData);
 }
 
-export { putReport };
+async function schedulePutReport() {
+  while (true) {
+    // if having report address but no content
+    const lackReportEvidences = await prisma.evidences.findMany({
+      where: {
+        OR: [
+          {
+            content: null,
+          },
+          {
+            content: "",
+          },
+        ],
+        report_address: {
+          not: null,
+        },
+      },
+    });
+    if (lackReportEvidences.length > 0) {
+      await putReport(lackReportEvidences);
+    } else {
+      console.log("No report to put");
+    }
+    // set time interval 3 mins
+    await new Promise((resolve) => setTimeout(resolve, 180000));
+    console.log("schedule put report end");
+  }
+}
+
+export { schedulePutReport };

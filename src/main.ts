@@ -4,6 +4,7 @@ import Crawler from "./crawler";
 import Parser from "./parser";
 import ReportAndMint from "./create_report_mint_nft";
 import { config } from "dotenv";
+import { schedulePutReport } from "./parse/crawl_report";
 
 if (process.env.NODE_ENV !== "production") {
   config();
@@ -22,6 +23,7 @@ async function bootstrap() {
   // Promise.all([crawler.start()]);
   Promise.all([crawler.start(), parser.start()]);
   // Promise.all([parser.start()]);
+  Promise.all([schedulePutReport()]);
   // Promise.all([reportAndMint.start(), parser.start()]);
 }
 
