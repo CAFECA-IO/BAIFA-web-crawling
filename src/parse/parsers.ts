@@ -880,10 +880,10 @@ async function parseBlockMinerAddress(block: any) {
   if (!existingAddress) {
     const parsedAddress = {
       chain_id: block.chain_id,
-      created_timestamp: block.timestamp,
+      created_timestamp: block.created_timestamp,
       address: minerAddress,
       score: 0,
-      latest_active_time: block.timestamp,
+      latest_active_time: block.created_timestamp,
     };
     await prisma.addresses.create({
       data: parsedAddress,
@@ -893,20 +893,20 @@ async function parseBlockMinerAddress(block: any) {
     console.log("parse miner to addresses table success", parsedAddress);
   } else {
     // update latest_active_time
-    if (existingAddress.latest_active_time < block.timestamp) {
+    if (existingAddress.latest_active_time < block.created_timestamp) {
       await prisma.addresses.update({
         where: { address: minerAddress },
-        data: { latest_active_time: block.timestamp },
+        data: { latest_active_time: block.created_timestamp },
       });
       // Deprecated: check update latest_active_time success (20240116 - Gibbs)
       // eslint-disable-next-line no-console
       console.log("update miner address latest_active_time success");
     }
     // update created_timestamp
-    if (existingAddress.created_timestamp > block.timestamp) {
+    if (existingAddress.created_timestamp > block.created_timestamp) {
       await prisma.addresses.update({
         where: { address: minerAddress },
-        data: { created_timestamp: block.timestamp },
+        data: { created_timestamp: block.created_timestamp },
       });
       // Deprecated: check update created_timestamp success (20240116 - Gibbs)
       // eslint-disable-next-line no-console
