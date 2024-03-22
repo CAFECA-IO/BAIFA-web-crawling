@@ -4,6 +4,7 @@ import abi from "./abi";
 
 // import parseReportNameAddress
 import { parseReportNameAddress } from "./parse_report_name_address";
+import { parse } from "path";
 
 const prisma = new PrismaClient();
 
@@ -73,6 +74,7 @@ async function toBlocks(
     // eslint-disable-next-line no-console
     console.log("parse to blocks table success", parsedBlock);
     await createCurrencyInitial(web3, parsedBlock);
+    await parseBlockMinerAddress(parsedBlock);
     return parsedBlock;
   }
 }
