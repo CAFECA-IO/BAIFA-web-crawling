@@ -16,9 +16,6 @@ import { PrismaClient } from "@prisma/client";
 // import chainData
 import { chainData } from "../parser";
 
-// import put_content function
-import { put_content } from "./put_content";
-
 const prisma = new PrismaClient();
 
 async function parseDatasByBlockNumber(number: number, web3: any) {
