@@ -4,7 +4,7 @@ import Crawler from "./crawler";
 import Parser from "./parser";
 import { config } from "dotenv";
 import { schedulePutReport } from "./parse/crawl_report";
-import { scheduleCalculateHolderNumbers } from "./parse/volume_holder";
+import { scheduleCalculateHolderVolume } from "./parse/volume_holder";
 
 if (process.env.NODE_ENV !== "production") {
   config();
@@ -23,7 +23,7 @@ async function bootstrap() {
   Promise.all([crawler.start(), parser.start()]);
   // Promise.all([parser.start()]);
   Promise.all([schedulePutReport()]);
-  Promise.all([scheduleCalculateHolderNumbers()]);
+  Promise.all([scheduleCalculateHolderVolume()]);
 }
 
 bootstrap();

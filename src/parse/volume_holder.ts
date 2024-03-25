@@ -3,15 +3,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // calculate the holder numbers of each currency in token_balances table and update holer count in currencies table
-async function calculateHolderNumbers() {
-  // get all currency ids from token_balances table
-  const currencyIds = await prisma.token_balances.findMany({
-    select: { currency_id: true },
-    distinct: ["currency_id"],
-  });
+async function calculateHolderNumbers(currencyIds) {
   // get all holder numbers of each currency
   for (let i = 0; i < currencyIds.length; i++) {
-    const currencyId = currencyIds[i].currency_id;
+    const currencyId = currencyIds[i].id;
     const holderNumbers = await prisma.token_balances.count({
       where: { currency_id: currencyId },
     });
@@ -33,12 +28,44 @@ async function calculateHolderNumbers() {
   console.log("all holder count updated");
 }
 
-// auto conduct calculateHolderNumbers function every 1 hour
-async function scheduleCalculateHolderNumbers() {
+// calculate volume(value) in 24h for each currency in token_transfers table and update volume_in_24h in currencies table
+async function calculateVolumeIn24h(currencyIds) {
+  // get all volume_in_24h of each currency
+  for (let i = 0; i < currencyIds.length; i++) {
+    const currencyId = currencyIds[i].id;
+    const volumeIn24h = await prisma.$queryRaw`
+      SELECT SUM(CAST(value AS DECIMAL)) as total
+      FROM token_transfers
+      WHERE currency_id = ${currencyId}
+        AND created_timestamp >= EXTRACT(EPOCH FROM (NOW() - INTERVAL '24 hours'))
+    `;
+    // volume_in_24h !== volumeIn24h, update volume_in_24h
+    const volume24h = await prisma.currencies.findFirst({
+      where: { id: currencyId },
+      select: { volume_in_24h: true },
+    });
+    if (volume24h.volume_in_24h !== JSON.stringify(volumeIn24h[0].total)) {
+      // update volume_in_24h of each currency in currencies table
+      await prisma.currencies.update({
+        where: { id: currencyId },
+        data: { volume_in_24h: JSON.stringify(volumeIn24h[0].total) },
+      });
+    }
+  }
+}
+
+// auto conduct calculateHolderNumbers function and  calculateVolumeIn24h function every 1 hour
+async function scheduleCalculateHolderVolume() {
   while (true) {
-    await calculateHolderNumbers();
+    // get all currency ids from currencies table
+    const currencyIds = await prisma.currencies.findMany({
+      select: { id: true },
+      distinct: ["id"],
+    });
+    await calculateHolderNumbers(currencyIds);
+    await calculateVolumeIn24h(currencyIds);
     await new Promise((resolve) => setTimeout(resolve, 1000 * 60 * 60));
   }
 }
 
-export { scheduleCalculateHolderNumbers };
+export { scheduleCalculateHolderVolume };
