@@ -33,22 +33,35 @@ async function calculateVolumeIn24h(currencyIds) {
   // get all volume_in_24h of each currency
   for (let i = 0; i < currencyIds.length; i++) {
     const currencyId = currencyIds[i].id;
-    const volumeIn24h = await prisma.$queryRaw`
-      SELECT SUM(CAST(value AS DECIMAL)) as total
-      FROM token_transfers
-      WHERE currency_id = ${currencyId}
-        AND created_timestamp >= EXTRACT(EPOCH FROM (NOW() - INTERVAL '24 hours'))
-    `;
+    const volumeIn24h = await prisma.token_transfers.findMany({
+      where: {
+        currency_id: currencyId,
+        created_timestamp: {
+          gte: (Date.now() - 24 * 60 * 60 * 1000) / 1000, // 過去 24 小時
+        },
+      },
+      select: {
+        value: true, // 只選擇 value 欄位
+      },
+    });
+    let volumeIn24hResult = "0";
+    if (volumeIn24h.length > 0) {
+      volumeIn24hResult = volumeIn24h
+        .reduce((temp, cur) => {
+          return BigInt(temp) + BigInt(cur.value);
+        }, BigInt(0))
+        .toString();
+    }
     // volume_in_24h !== volumeIn24h, update volume_in_24h
     const volume24h = await prisma.currencies.findFirst({
       where: { id: currencyId },
       select: { volume_in_24h: true },
     });
-    if (volume24h.volume_in_24h !== JSON.stringify(volumeIn24h[0].total)) {
+    if (volume24h.volume_in_24h !== volumeIn24hResult) {
       // update volume_in_24h of each currency in currencies table
       await prisma.currencies.update({
         where: { id: currencyId },
-        data: { volume_in_24h: JSON.stringify(volumeIn24h[0].total) },
+        data: { volume_in_24h: volumeIn24hResult },
       });
     }
   }
