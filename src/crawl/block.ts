@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 import fs from "fs";
 import path from "path";
-const errorLogPath = path.join(__dirname, "errorBlocks.log");
+const errorLogPath = path.join(process.cwd(), "errorBlocks.log");
 
 async function crawlBlock(web3: any) {
   // Get the latest block number
