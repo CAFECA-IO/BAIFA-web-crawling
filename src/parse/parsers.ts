@@ -153,7 +153,7 @@ async function toContracts(
         });
         // Deprecated: check parse to contracts table success (20240109 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("parsedContract", parsedContract);
+        // console.log("parsedContract", parsedContract);
       } else {
         // update latest_active_time
         if (existingContract.latest_active_time < block.timestamp) {
@@ -163,10 +163,10 @@ async function toContracts(
           });
           // Deprecated: check update latest_active_time success (20240305 - Gibbs)
           // eslint-disable-next-line no-console
-          console.log(
-            "update contract latest_active_time success, contract address: ",
-            contractAddress,
-          );
+          // console.log(
+          //   "update contract latest_active_time success, contract address: ",
+          //   contractAddress,
+          // );
         }
         // update created_timestamp
         if (existingContract.created_timestamp > block.timestamp) {
@@ -176,10 +176,10 @@ async function toContracts(
           });
           // Deprecated: check update created_timestamp success (20240305 - Gibbs)
           // eslint-disable-next-line no-console
-          console.log(
-            "update contract created_timestamp success, contract address: ",
-            contractAddress,
-          );
+          // console.log(
+          //   "update contract created_timestamp success, contract address: ",
+          //   contractAddress,
+          // );
         }
       }
     }
@@ -228,10 +228,10 @@ async function toTransactions(
       const transactionReceipt = transactionReceipts[i];
       // Deprecated: check transaction data (20240131 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("transaction", transaction);
+      // console.log("transaction", transaction);
       // Deprecated: check transactionReceipt data (20240131 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("transactionReceipt", transactionReceipt);
+      // console.log("transactionReceipt", transactionReceipt);
       // check if transaction exist
       const existingTransaction = await prisma.transactions.findFirst({
         where: { hash: transaction.hash },
@@ -266,14 +266,14 @@ async function toTransactions(
         console.log("type", typeof transaction.value, transaction.value);
         // Deprecated: check parsedTransaction value (20240131 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log(
-          "value",
-          typeof parsedTransaction.value,
-          parsedTransaction.value,
-        );
+        // console.log(
+        //   "value",
+        //   typeof parsedTransaction.value,
+        //   parsedTransaction.value,
+        // );
         // Deprecated: check parsedTransaction data (20240115 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("parsedTransaction", parsedTransaction);
+        // console.log("parsedTransaction", parsedTransaction);
         await prisma.transactions.create({
           data: parsedTransaction,
         });
@@ -325,7 +325,7 @@ async function toTransactions(
 
 // update token balances
 async function updateTokenBalances(data: any, currency_id: string) {
-  console.log("updateTokenBalances", data, currency_id);
+  // console.log("updateTokenBalances", data, currency_id);
   if (data.from_address) {
     const fromValue = await prisma.balance_versions.findMany({
       where: {
@@ -337,7 +337,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
       },
       take: 1,
     });
-    console.log("fromValue", fromValue);
+    // console.log("fromValue", fromValue);
     if (fromValue.length > 0) {
       const paddedValue = padTokenValue(fromValue[0].snapshot);
       await prisma.token_balances.upsert({
@@ -370,7 +370,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
       },
       take: 1,
     });
-    console.log("toValue", toValue);
+    // console.log("toValue", toValue);
     if (toValue.length > 0) {
       const paddedValue = padTokenValue(toValue[0].snapshot);
       await prisma.token_balances.upsert({
@@ -762,14 +762,14 @@ async function evidenceId(
       const parsedReceiptLogs = transactionReceipt.logs;
       // Deprecated: check parsedReceiptLogs data (20240116 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("parsedReceiptLogs", parsedReceiptLogs);
+      // console.log("parsedReceiptLogs", parsedReceiptLogs);
       // get evidence id
       const evidenceId =
         parsedReceiptLogs[0].address.substring(2) +
         parsedReceiptLogs[0].topics[3].substring(26);
       // Deprecated: check evidenceId data (20240116 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("evidenceId:", evidenceId);
+      // console.log("evidenceId:", evidenceId);
       await toEvidences(transaction, transactionReceipt, evidenceId, block);
       return evidenceId;
     } else {
@@ -814,11 +814,11 @@ async function toEvidences(
     });
     // Deprecated: check parse to evidences table success (20240115 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log(
-      "parse to evidences table success",
-      "parsedEvidence",
-      parsedEvidence,
-    );
+    // console.log(
+    //   "parse to evidences table success",
+    //   "parsedEvidence",
+    //   parsedEvidence,
+    // );
   }
 }
 
@@ -1180,7 +1180,7 @@ async function createCurrency(
   const contractAddress = currency_id;
   // Deprecated: check contractAddress (20240131 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("contractAddress", contractAddress);
+  // console.log("contractAddress", contractAddress);
   if (
     contractAddress &&
     contractAddress !== "0x0000000000000000000000000000000000000000"
@@ -1197,7 +1197,7 @@ async function createCurrency(
       });
       // Deprecated: check new currency create success (20240123 - Gibbs)
       // eslint-disable-next-line no-console
-      console.log("create new ERC 20 currency success", newERC20Currency);
+      // console.log("create new ERC 20 currency success", newERC20Currency);
     }
   } else if (
     contractAddress &&
@@ -1220,7 +1220,7 @@ async function createCurrency(
     });
     // Deprecated: check new currency create success (20240125 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("create new normal currency success", newCurrency);
+    // console.log("create new normal currency success", newCurrency);
   }
 }
 
