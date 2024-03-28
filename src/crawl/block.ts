@@ -4,7 +4,7 @@ import { crawlTransactionAndReceipt } from "./transactions";
 const prisma = new PrismaClient();
 
 import fs from "fs";
-import path from "path";
+import * as path from "node:path";
 const errorLogPath = path.join(process.cwd(), "errorBlocks.log");
 
 async function crawlBlock(web3: any) {
