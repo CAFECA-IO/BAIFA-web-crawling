@@ -42,6 +42,13 @@ class Crawler {
     // Deprecated: check crawl block end (20231225 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("crawl block end, dataCount:", dataCount);
+
+    // Info: (20240115 - Gibbs) check if miss number of blocks
+    const blockNumbers = await prisma.block_raw.findMany({
+      select: { number: true },
+      orderBy: { number: "asc" },
+    });
+
   }
 }
 

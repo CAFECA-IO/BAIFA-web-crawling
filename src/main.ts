@@ -20,10 +20,10 @@ async function bootstrap() {
   const parser = new Parser();
 
   // Promise.all([crawler.start()]);
-  // Promise.all([crawler.start(), parser.start()]);
+  Promise.all([crawler.start(), parser.start()]);
   // Promise.all([parser.start()]);
   Promise.all([schedulePutReport()]);
-  // Promise.all([scheduleCalculateHolderVolume()]);
+  Promise.all([scheduleCalculateHolderVolume()]);
 }
 
 bootstrap();
