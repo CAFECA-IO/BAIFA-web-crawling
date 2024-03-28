@@ -386,7 +386,12 @@ async function crawlReport(reportId, reportName, contractInstance) {
       "assets.details.accountsReceivable.totalAmountFairValue",
       contractInstance,
     );
-
+  /*A021*/ const nonAssets_fairValue = await getContractValue(
+    reportName,
+    "balanceSheet",
+    "nonAssets.fairValue",
+    contractInstance,
+  );
   /*A022*/
 
   /*A025*/ const assets_details_accountsReceivable_breakdown_USDT_amount =
@@ -2040,6 +2045,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
       assets_details_cryptocurrency_breakdown_USDT_fairValue,
     assets_totalAmountFairValue: assets_totalAmountFairValue,
     totalAssetsFairValue: totalAssetsFairValue,
+    nonAssets_fairValue: nonAssets_fairValue,
     liabilities_details_userDeposit_totalAmountFairValue:
       liabilities_details_userDeposit_totalAmountFairValue,
     liabilities_details_userDeposit_breakdown_USDT_amount:
@@ -2618,6 +2624,9 @@ async function crawlReport(reportId, reportName, contractInstance) {
             },
           },
         },
+      },
+      nonAssets: {
+        fairValue: balanceSheet.nonAssets_fairValue, //A021
       },
       liabilities: {
         fairValue: balanceSheet.liabilities_totalAmountFairValue, //A009
