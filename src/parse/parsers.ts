@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
 // import abi
 import abi from "./abi";
 
@@ -6,7 +7,7 @@ import abi from "./abi";
 import { parseReportNameAddress } from "./parse_report_name_address";
 import { parse } from "path";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 // const parseTransacrion = async(raw) => {
 //   /*

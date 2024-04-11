@@ -1,11 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
 import {
   getTransactionReceiptAndSave,
   getNumberOfTransactionReceiptsOfBlock,
   updateTransactionReceiptFinished,
 } from "./receipts";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 async function crawlTransactionAndReceipt(web3: any, blockNumber: number) {
   // Deprecated: print crawlTransaction blockNumber (20231225 - Gibbs)

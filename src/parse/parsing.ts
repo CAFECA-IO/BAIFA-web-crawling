@@ -11,12 +11,13 @@ import {
   updateTotalAmount,
 } from "./parsers";
 
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
 
 // import chainData
 import { chainData } from "../parser";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 async function parseDatasByBlockNumber(number: number, web3: any) {
   const block = await getBlockRawData(number);
