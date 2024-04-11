@@ -61,12 +61,13 @@ async function parsing(web3: any) {
       })
     )?.number || 0;
   console.log("startBlockNumber:", startBlockNumber);
-  const endBlockNumber = (
-    await prisma.block_raw.findFirst({
-      select: { number: true },
-      orderBy: { number: "desc" },
-    })
-  ).number;
+  const endBlockNumber =
+    (
+      await prisma.block_raw.findFirst({
+        select: { number: true },
+        orderBy: { number: "desc" },
+      })
+    )?.number || 0;
   console.log("endBlockNumber:", endBlockNumber);
   // for (let i = startBlockNumber; i <= endBlockNumber; i++) {
   //   try {
@@ -87,8 +88,8 @@ async function parsing(web3: any) {
         async () => {
           await parseDatasByBlockNumber(i, web3);
         },
-        // info: (20240319 - Gibbs) set transaction timeout to 5 minutes
-        { timeout: 1000 * 60 * 5 },
+        // info: (20240319 - Gibbs) set transaction timeout to 10 minutes
+        { timeout: 1000 * 60 * 10 },
       );
       // Deprecated: print block number of parse datas (20240118 - Gibbs)
       // eslint-disable-next-line no-console

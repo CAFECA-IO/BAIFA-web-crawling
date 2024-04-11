@@ -1,10 +1,11 @@
 // import { PrismaClient } from "@prisma/client";
-import prisma from "../client";
+import prisma from "../client_crawl";
 import { crawlTransactionAndReceipt } from "./transactions";
 
 // const prisma = new PrismaClient();
 
-import fs from "fs";
+// import fs from "fs";
+import { promises as fs } from "fs";
 import * as path from "node:path";
 const errorLogPath = path.join(process.cwd(), "errorBlocks.log");
 
@@ -103,8 +104,8 @@ async function crawlBlock(web3: any) {
                 await saveBlock(web3, i);
                 await crawlTransactionAndReceipt(web3, i);
               },
-              // set transaction timeout to 5 minutes
-              { timeout: 1000 * 60 * 5 },
+              // set transaction timeout to 10 minutes
+              { timeout: 1000 * 60 * 10 },
             );
             break; // if success, break the loop
           } catch (error) {
@@ -113,12 +114,25 @@ async function crawlBlock(web3: any) {
           }
         }
         if (errorOccurred && attempts >= 3) {
-          // if error occurred and attempts >= 3, write the error block number to error log
-          fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
-          // Deprecated: print error block number (20240328 - Gibbs)
-          // eslint-disable-next-line no-console
-          console.log(`爬取錯誤的區塊號碼: ${i}`);
+          try {
+            // if error occurred and attempts >= 3, write the error block number to error log
+            await fs.appendFile(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+            // Deprecated: print error block number (20240328 - Gibbs)
+            // eslint-disable-next-line no-console
+            console.log(`爬取錯誤的區塊號碼: ${i}`);
+          } catch (error) {
+            console.error(
+              `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
+            );
+          }
         }
+        // if (errorOccurred && attempts >= 3) {
+        //   // if error occurred and attempts >= 3, write the error block number to error log
+        //   fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+        //   // Deprecated: print error block number (20240328 - Gibbs)
+        //   // eslint-disable-next-line no-console
+        //   console.log(`爬取錯誤的區塊號碼: ${i}`);
+        // }
       }
     }
   }
@@ -139,8 +153,8 @@ async function crawlBlock(web3: any) {
                 await saveBlock(web3, i);
                 await crawlTransactionAndReceipt(web3, i);
               },
-              // set transaction timeout to 5 minutes
-              { timeout: 1000 * 60 * 5 },
+              // set transaction timeout to 10 minutes
+              { timeout: 1000 * 60 * 10 },
             );
             break; // if success, break the loop
           } catch (error) {

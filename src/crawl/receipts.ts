@@ -1,5 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
-import prisma from "../client";
+import prisma from "../client_crawl";
 // const prisma = new PrismaClient();
 
 async function getTransactionReceiptAndSave(
