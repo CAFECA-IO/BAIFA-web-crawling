@@ -163,12 +163,25 @@ async function crawlBlock(web3: any) {
           }
         }
         if (errorOccurred && attempts >= 3) {
-          // if error occurred and attempts >= 3, write the error block number to error log
-          fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
-          // Deprecated: print error block number (20240328 - Gibbs)
-          // eslint-disable-next-line no-console
-          console.log(`爬取錯誤的區塊號碼: ${i}`);
+          try {
+            // if error occurred and attempts >= 3, write the error block number to error log
+            await fs.appendFile(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+            // Deprecated: print error block number (20240328 - Gibbs)
+            // eslint-disable-next-line no-console
+            console.log(`爬取錯誤的區塊號碼: ${i}`);
+          } catch (error) {
+            console.error(
+              `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
+            );
+          }
         }
+        // if (errorOccurred && attempts >= 3) {
+        //   // if error occurred and attempts >= 3, write the error block number to error log
+        //   fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+        //   // Deprecated: print error block number (20240328 - Gibbs)
+        //   // eslint-disable-next-line no-console
+        //   console.log(`爬取錯誤的區塊號碼: ${i}`);
+        // }
       }
     }
   }
