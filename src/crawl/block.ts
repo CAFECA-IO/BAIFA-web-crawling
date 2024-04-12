@@ -63,6 +63,7 @@ async function crawlBlock(web3: any) {
   }
 
   // (old) get block from smallEnd to block 0
+  
   if (smallEnd > 0) {
     for (let i = smallEnd - 1; i >= 0; i--) {
       // check if block exist

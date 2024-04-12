@@ -73,7 +73,7 @@ async function toBlocks(
     await BlockToBalanceVersions(parsedBlock);
     // Deprecated: check parse to blocks table success (20240105 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("parse to blocks table success", parsedBlock);
+    console.log("parse to blocks table success", parsedBlock.number);
     await createCurrencyInitial(web3, parsedBlock);
     await parseBlockMinerAddress(parsedBlock);
     return parsedBlock;
@@ -264,7 +264,7 @@ async function toTransactions(
         };
         // Deprecated: check transaction value (20240131 - Gibbs)
         // eslint-disable-next-line no-console
-        console.log("type", typeof transaction.value, transaction.value);
+        // console.log("type", typeof transaction.value, transaction.value);
         // Deprecated: check parsedTransaction value (20240131 - Gibbs)
         // eslint-disable-next-line no-console
         // console.log(
