@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
 import { BalanceSheetsNeoSchema } from "./report_schema/balance_sheets_neo";
 import { ComprehensiveIncomeNeoSchema } from "./report_schema/comprehensive_income_neo";
 import { CashFlowNeoSchema } from "./report_schema/cash_flow_neo";
@@ -152,7 +153,7 @@ const abi = [
   },
 ];
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 // 創建智能合約實例
 const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);

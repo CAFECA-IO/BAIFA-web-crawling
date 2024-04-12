@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
+// const prisma = new PrismaClient();
 
 // calculate the holder numbers of each currency in token_balances table and update holer count in currencies table
 async function calculateHolderNumbers(currencyIds) {
