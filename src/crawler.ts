@@ -1,10 +1,11 @@
 import Web3 from "web3";
 import { Logger } from "@nestjs/common";
 // Info: (20240111 - Gibbs) use prisma client to store raw data
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "./client";
 import { crawlBlock } from "./crawl/block";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 class Crawler {
   private web3: Web3;

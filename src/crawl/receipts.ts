@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
+// const prisma = new PrismaClient();
 
 async function getTransactionReceiptAndSave(
   web3: any,

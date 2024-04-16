@@ -1,11 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
 import { crawlTransactionAndReceipt } from "./transactions";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
+
+// import fs from "fs";
+import { promises as fs } from "fs";
+import * as path from "node:path";
+const errorLogPath = path.join(process.cwd(), "errorBlocks.log");
 
 async function crawlBlock(web3: any) {
   // Get the latest block number
-
   const latestBlockNumber = Number(await web3.eth.getBlockNumber());
   // test
   // const latestBlockNumber = 9999999;
@@ -30,7 +35,8 @@ async function crawlBlock(web3: any) {
   // eslint-disable-next-line no-console
   console.log("bigEnd:", bigEnd, "smallEnd:", smallEnd);
 
-  // get block from bigEnd to latest block
+  // (old) get block from bigEnd to latest block
+  /*
   if (latestBlockNumber > bigEnd) {
     for (let i = bigEnd + 1; i <= latestBlockNumber; i++) {
       // check if block exist
@@ -55,7 +61,9 @@ async function crawlBlock(web3: any) {
       }
     }
   }
-  // get block from smallEnd to block 0
+
+  // (old) get block from smallEnd to block 0
+  
   if (smallEnd > 0) {
     for (let i = smallEnd - 1; i >= 0; i--) {
       // check if block exist
@@ -77,6 +85,104 @@ async function crawlBlock(web3: any) {
           console.log("crawling error block number:", i, error);
           continue;
         }
+      }
+    }
+  }
+  */
+  // (new) get block from bigEnd to latest block
+  if (latestBlockNumber > bigEnd) {
+    for (let i = bigEnd + 1; i <= latestBlockNumber; i++) {
+      // check if block exist
+      const existingBlock = await checkBlockExisting(i);
+      if (!existingBlock) {
+        let attempts = 0;
+        let errorOccurred = false;
+        while (attempts < 3) {
+          try {
+            // using transaction to pack saveBlock and crawlTransactionAndReceipt function
+            await prisma.$transaction(
+              async () => {
+                await saveBlock(web3, i);
+                await crawlTransactionAndReceipt(web3, i);
+              },
+              // set transaction timeout to 10 minutes
+              { timeout: 1000 * 60 * 10 },
+            );
+            break; // if success, break the loop
+          } catch (error) {
+            attempts++;
+            errorOccurred = true; // record error occurred
+          }
+        }
+        if (errorOccurred && attempts >= 3) {
+          try {
+            // if error occurred and attempts >= 3, write the error block number to error log
+            await fs.appendFile(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+            // Deprecated: print error block number (20240328 - Gibbs)
+            // eslint-disable-next-line no-console
+            console.log(`爬取錯誤的區塊號碼: ${i}`);
+          } catch (error) {
+            console.error(
+              `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
+            );
+          }
+        }
+        // if (errorOccurred && attempts >= 3) {
+        //   // if error occurred and attempts >= 3, write the error block number to error log
+        //   fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+        //   // Deprecated: print error block number (20240328 - Gibbs)
+        //   // eslint-disable-next-line no-console
+        //   console.log(`爬取錯誤的區塊號碼: ${i}`);
+        // }
+      }
+    }
+  }
+
+  // (new) get block from smallEnd to block 0
+  if (smallEnd > 0) {
+    for (let i = smallEnd - 1; i >= 0; i--) {
+      // check if block exist
+      const existingBlock = await checkBlockExisting(i);
+      if (!existingBlock) {
+        let attempts = 0;
+        let errorOccurred = false;
+        while (attempts < 3) {
+          try {
+            // using transaction to pack saveBlock and crawlTransactionAndReceipt function
+            await prisma.$transaction(
+              async () => {
+                await saveBlock(web3, i);
+                await crawlTransactionAndReceipt(web3, i);
+              },
+              // set transaction timeout to 10 minutes
+              { timeout: 1000 * 60 * 10 },
+            );
+            break; // if success, break the loop
+          } catch (error) {
+            attempts++;
+            errorOccurred = true; // record error occurred
+          }
+        }
+        if (errorOccurred && attempts >= 3) {
+          try {
+            // if error occurred and attempts >= 3, write the error block number to error log
+            await fs.appendFile(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+            // Deprecated: print error block number (20240328 - Gibbs)
+            // eslint-disable-next-line no-console
+            console.log(`爬取錯誤的區塊號碼: ${i}`);
+          } catch (error) {
+            console.error(
+              `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
+            );
+          }
+        }
+        // if (errorOccurred && attempts >= 3) {
+        //   // if error occurred and attempts >= 3, write the error block number to error log
+        //   fs.appendFileSync(errorLogPath, `爬取錯誤的區塊號碼: ${i}\n`);
+        //   // Deprecated: print error block number (20240328 - Gibbs)
+        //   // eslint-disable-next-line no-console
+        //   console.log(`爬取錯誤的區塊號碼: ${i}`);
+        // }
       }
     }
   }

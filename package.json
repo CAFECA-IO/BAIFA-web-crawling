@@ -1,6 +1,6 @@
 {
   "name": "baifa_crawler",
-  "version": "0.1.5+13",
+  "version": "0.1.5+14",
   "description": "",
   "author": "",
   "private": true,
@@ -33,7 +33,8 @@
     "ethers": "^6.11.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "web3": "^4.3.0"
+    "web3": "^4.3.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

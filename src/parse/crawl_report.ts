@@ -1,5 +1,9 @@
 import { ethers } from "ethers";
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import prisma from "../client";
+import { BalanceSheetsNeoSchema } from "./report_schema/balance_sheets_neo";
+import { ComprehensiveIncomeNeoSchema } from "./report_schema/comprehensive_income_neo";
+import { CashFlowNeoSchema } from "./report_schema/cash_flow_neo";
 
 const abi = [
   {
@@ -149,7 +153,7 @@ const abi = [
   },
 ];
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 // 創建智能合約實例
 const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);
@@ -383,7 +387,12 @@ async function crawlReport(reportId, reportName, contractInstance) {
       "assets.details.accountsReceivable.totalAmountFairValue",
       contractInstance,
     );
-
+  /*A021*/ const nonAssets_fairValue = await getContractValue(
+    reportName,
+    "balanceSheet",
+    "nonAssets.fairValue",
+    contractInstance,
+  );
   /*A022*/
 
   /*A025*/ const assets_details_accountsReceivable_breakdown_USDT_amount =
@@ -2037,6 +2046,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
       assets_details_cryptocurrency_breakdown_USDT_fairValue,
     assets_totalAmountFairValue: assets_totalAmountFairValue,
     totalAssetsFairValue: totalAssetsFairValue,
+    nonAssets_fairValue: nonAssets_fairValue,
     liabilities_details_userDeposit_totalAmountFairValue:
       liabilities_details_userDeposit_totalAmountFairValue,
     liabilities_details_userDeposit_breakdown_USDT_amount:
@@ -2552,10 +2562,10 @@ async function crawlReport(reportId, reportName, contractInstance) {
       totalLiabilitiesAndEquityFairValue:
         balanceSheet.totalLiabilitiesAndEquityFairValue, //A014
       assets: {
-        totalAmountFairValue: balanceSheet.assets_totalAmountFairValue, //A004
+        fairValue: balanceSheet.assets_totalAmountFairValue, //A004
         details: {
           cryptocurrency: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.assetsDetailsCryptocurrencyTotalAmountFairValue, //A001
             breakdown: {
               USDT: {
@@ -2579,7 +2589,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
             },
           },
           cashAndCashEquivalent: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.assets_details_cashAndCashEquivalent_totalAmountFairValue, //A019
             breakdown: {
               USD: {
@@ -2591,7 +2601,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
             },
           },
           accountsReceivable: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.assets_details_accountsReceivable_totalAmountFairValue, //A020
             breakdown: {
               USDT: {
@@ -2616,11 +2626,14 @@ async function crawlReport(reportId, reportName, contractInstance) {
           },
         },
       },
+      nonAssets: {
+        fairValue: balanceSheet.nonAssets_fairValue, //A021
+      },
       liabilities: {
-        totalAmountFairValue: balanceSheet.liabilities_totalAmountFairValue, //A009
+        fairValue: balanceSheet.liabilities_totalAmountFairValue, //A009
         details: {
           userDeposit: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.liabilities_details_userDeposit_totalAmountFairValue, //A006
             breakdown: {
               USDT: {
@@ -2650,7 +2663,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
             },
           },
           accountsPayable: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.liabilities_details_accountsPayable_totalAmountFairValue, //A021
             breakdown: {
               USDT: {
@@ -2682,10 +2695,10 @@ async function crawlReport(reportId, reportName, contractInstance) {
         },
       },
       equity: {
-        totalAmountFairValue: balanceSheet.equity_totalAmountFairValue, //A013
+        fairValue: balanceSheet.equity_totalAmountFairValue, //A013
         details: {
           retainedEarning: {
-            totalAmountFairValue:
+            fairValue:
               balanceSheet.equity_details_retainedEarnings_totalAmountFairValue, //A010
             breakdown: {
               USDT: {
@@ -2847,99 +2860,98 @@ async function crawlReport(reportId, reportName, contractInstance) {
               },
             },
           },
-        },
-        spreadFee: {
-          weightedAverageCost:
-            comprehensiveIncome.income_details_spreadFee_weightedAverageCost, //B012
-          breakdown: {
-            ETH: {
-              amount:
-                comprehensiveIncome.income_details_spreadFee_breakdown_ETH_amount, //B054
-              weightedAverageCost:
-                comprehensiveIncome.income_details_spreadFee_breakdown_ETH_weightedAverageCost, //B055
-            },
-            BTC: {
-              amount:
-                comprehensiveIncome.income_details_spreadFee_breakdown_BTC_amount, //B056
-              weightedAverageCost:
-                comprehensiveIncome.income_details_spreadFee_breakdown_BTC_weightedAverageCost, //B057
-            },
-            USDT: {
-              amount:
-                comprehensiveIncome.income_details_spreadFee_breakdown_USDT_amount, //B058
-              weightedAverageCost:
-                comprehensiveIncome.income_details_spreadFee_breakdown_USDT_weightedAverageCost, //B059
-            },
-            USD: {
-              amount:
-                comprehensiveIncome.income_details_spreadFee_breakdown_USD_amount, //B060
-              weightedAverageCost:
-                comprehensiveIncome.income_details_spreadFee_breakdown_USD_weightedAverageCost, //B061
-            },
-          },
-        },
-        liquidationFee: {
-          weightedAverageCost:
-            comprehensiveIncome.income_details_liquidationFee_weightedAverageCost, //B013
-          breakdown: {
-            ETH: {
-              amount:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_ETH_amount, //B062
-              weightedAverageCost:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_ETH_weightedAverageCost, //B063
-            },
-            BTC: {
-              amount:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_BTC_amount, //B064
-              weightedAverageCost:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_BTC_weightedAverageCost, //B065
-            },
-            USDT: {
-              amount:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_USDT_amount, //B066
-              weightedAverageCost:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_USDT_weightedAverageCost, //B067
-            },
-            USD: {
-              amount:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_USD_amount, //B068
-              weightedAverageCost:
-                comprehensiveIncome.income_details_liquidationFee_breakdown_USD_weightedAverageCost, //B069
+          spreadFee: {
+            weightedAverageCost:
+              comprehensiveIncome.income_details_spreadFee_weightedAverageCost, //B012
+            breakdown: {
+              ETH: {
+                amount:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_ETH_amount, //B054
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_ETH_weightedAverageCost, //B055
+              },
+              BTC: {
+                amount:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_BTC_amount, //B056
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_BTC_weightedAverageCost, //B057
+              },
+              USDT: {
+                amount:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_USDT_amount, //B058
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_USDT_weightedAverageCost, //B059
+              },
+              USD: {
+                amount:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_USD_amount, //B060
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_spreadFee_breakdown_USD_weightedAverageCost, //B061
+              },
             },
           },
-        },
-        guaranteedStopLossFee: {
-          weightedAverageCost:
-            comprehensiveIncome.income_details_guaranteedStopFee_weightedAverageCost, //B014
-          breakdown: {
-            ETH: {
-              amount:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_ETH_amount, //B070
-              weightedAverageCost:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_ETH_weightedAverageCost, //B071
+          liquidationFee: {
+            weightedAverageCost:
+              comprehensiveIncome.income_details_liquidationFee_weightedAverageCost, //B013
+            breakdown: {
+              ETH: {
+                amount:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_ETH_amount, //B062
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_ETH_weightedAverageCost, //B063
+              },
+              BTC: {
+                amount:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_BTC_amount, //B064
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_BTC_weightedAverageCost, //B065
+              },
+              USDT: {
+                amount:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_USDT_amount, //B066
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_USDT_weightedAverageCost, //B067
+              },
+              USD: {
+                amount:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_USD_amount, //B068
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_liquidationFee_breakdown_USD_weightedAverageCost, //B069
+              },
             },
-            BTC: {
-              amount:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_BTC_amount, //B072
-              weightedAverageCost:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_BTC_weightedAverageCost, //B073
-            },
-            USDT: {
-              amount:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USDT_amount, //B074
-              weightedAverageCost:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USDT_weightedAverageCost, //B075
-            },
-            USD: {
-              amount:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USD_amount, //B076
-              weightedAverageCost:
-                comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USD_weightedAverageCost, //B077
+          },
+          guaranteedStopLossFee: {
+            weightedAverageCost:
+              comprehensiveIncome.income_details_guaranteedStopFee_weightedAverageCost, //B014
+            breakdown: {
+              ETH: {
+                amount:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_ETH_amount, //B070
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_ETH_weightedAverageCost, //B071
+              },
+              BTC: {
+                amount:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_BTC_amount, //B072
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_BTC_weightedAverageCost, //B073
+              },
+              USDT: {
+                amount:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USDT_amount, //B074
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USDT_weightedAverageCost, //B075
+              },
+              USD: {
+                amount:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USD_amount, //B076
+                weightedAverageCost:
+                  comprehensiveIncome.income_details_guaranteedStopFee_breakdown_USD_weightedAverageCost, //B077
+              },
             },
           },
         },
       },
-
       costs: {
         weightedAverageCost: comprehensiveIncome.costs_weightedAverageCost, //B030
         details: {
@@ -3440,6 +3452,40 @@ async function crawlReport(reportId, reportName, contractInstance) {
       },
     },
   };
+  // validate bs
+  const validateBalanceSheet = BalanceSheetsNeoSchema.safeParse(
+    reportData.balanceSheet,
+  );
+  if (validateBalanceSheet.success === false) {
+    // eslint-disable-next-line no-console
+    console.log("validateBalanceSheet.error", validateBalanceSheet.error);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log("Validation success for balanceSheet");
+  }
+  // validate ci
+  const validateComprehensiveIncome = ComprehensiveIncomeNeoSchema.safeParse(
+    reportData.comprehensiveIncome,
+  );
+  if (validateComprehensiveIncome.success === false) {
+    // eslint-disable-next-line no-console
+    console.log(
+      "validateComprehensiveIncome.error",
+      validateComprehensiveIncome.error,
+    );
+  } else {
+    // eslint-disable-next-line no-console
+    console.log("Validation success for comprehensiveIncome");
+  }
+  // validate cf
+  const validateCashFlow = CashFlowNeoSchema.safeParse(reportData.cashFlow);
+  if (validateCashFlow.success === false) {
+    // eslint-disable-next-line no-console
+    console.log("validateCashFlow.error", validateCashFlow.error);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log("Validation success for cashFlow");
+  }
   console.log("complete crawling report, report id", reportId);
   return JSON.stringify(reportData);
 }
