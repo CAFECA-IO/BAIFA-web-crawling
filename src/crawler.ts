@@ -20,16 +20,16 @@ class Crawler {
   }
 
   async start() {
-    try {
-      while (true) {
+    while (true) {
+      try {
         // Info: (20240115 - Gibbs) conduct every 5 seconds
         await new Promise((resolve) => setTimeout(resolve, 5000));
         await this.go();
+      } catch (error) {
+        // Deprecated: check crawler error (20240115 - Gibbs)
+        // eslint-disable-next-line no-console
+        console.log("Crawler error:", error);
       }
-    } catch (error) {
-      // Deprecated: check crawler error (20240115 - Gibbs)
-      // eslint-disable-next-line no-console
-      console.log("Crawler error:", error);
     }
   }
 
