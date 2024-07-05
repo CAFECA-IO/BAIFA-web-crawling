@@ -1,4 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
+import { CHAIN_INFO } from "src/constants/chain_info";
 import prisma from "../client";
 // import abi
 import abi from "./abi";
@@ -1238,12 +1239,12 @@ async function createCurrency(
       risk_level: "1",
       price: 0,
       volume_in_24h: "0",
-      symbol: "BLT",
+      symbol: CHAIN_INFO.symbol,
       total_amount: "0",
       holder_count: 0,
       total_transfers: 0,
       chain_id: parsedTransactionOrBlock.chain_id,
-      name: "BOLT",
+      name: CHAIN_INFO.chain_name,
     };
     await prisma.currencies.create({
       data: newCurrency,

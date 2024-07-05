@@ -16,7 +16,7 @@ class Crawler {
     // eslint-disable-next-line no-console
     console.log("Crawler constructor");
     // Info: (20240111 - Gibbs) Connect to the iSunCoin node
-    this.web3 = new Web3("https://bolt.baifa.io/");
+    this.web3 = new Web3(CHAIN_INFO.rpc);
     this.logger = new Logger();
   }
 

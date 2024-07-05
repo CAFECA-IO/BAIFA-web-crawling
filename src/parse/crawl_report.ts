@@ -157,7 +157,7 @@ const abi = [
 // const prisma = new PrismaClient();
 
 // 創建智能合約實例
-const provider = new ethers.JsonRpcProvider(`https://bolt.baifa.io/`);
+const provider = new ethers.JsonRpcProvider(CHAIN_INFO.rpc);
 
 // 用於存儲 contractInstance 的快取
 const contractInstancesCache = {};

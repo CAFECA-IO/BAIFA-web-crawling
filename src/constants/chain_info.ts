@@ -5,3 +5,11 @@ export const CHAIN_INFO = {
   decimal: 18,
   rpc: "https://bolt.baifa.io/",
 };
+
+// export const CHAIN_INFO = {
+//   chain_id: 8017,
+//   chain_name: "iSunChain",
+//   symbol: "ISC",
+//   decimal: 18,
+//   rpc: "https://isuncoin.baifa.io/",
+// };
