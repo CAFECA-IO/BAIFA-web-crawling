@@ -41,7 +41,7 @@ async function toBlocks(
   web3: any,
 ) {
   // check if data exist
-  const existingBlock = await prisma.blocks.findUnique({
+  const existingBlock = await prisma.blocks.findFirst({
     where: { number: number, chain_id: chainId },
   });
   if (!existingBlock) {
@@ -66,7 +66,7 @@ async function toBlocks(
       data: parsedBlock,
     });
     // update block_raw parse_finished status
-    await prisma.block_raw.update({
+    await prisma.block_raw.updateMany({
       where: { number: number, chain_id: chainId },
       data: { parse_finished: true },
     });
@@ -351,24 +351,40 @@ async function updateTokenBalances(data: any, currency_id: string) {
     // console.log("fromValue", fromValue);
     if (fromValue.length > 0) {
       const paddedValue = padTokenValue(fromValue[0].snapshot);
-      await prisma.token_balances.upsert({
+      const currency_id_number = await prisma.currencies.findFirst({
         where: {
-          address_currency_id: {
-            address: data.from_address,
-            currency_id: currency_id,
-          },
+          address: currency_id,
           chain_id: data.chain_id,
-        },
-        create: {
-          address: data.from_address,
-          currency_id: currency_id,
-          value: paddedValue,
-          chain_id: data.chain_id,
-        },
-        update: {
-          value: paddedValue,
         },
       });
+      const existingRecord = await prisma.token_balances.findFirst({
+        where: {
+          address: data.from_address,
+          currency_id: currency_id_number.id,
+          chain_id: data.chain_id,
+        },
+      });
+      if (existingRecord) {
+        await prisma.token_balances.updateMany({
+          where: {
+            address: data.from_address,
+            currency_id: currency_id_number.id,
+            chain_id: data.chain_id,
+          },
+          data: {
+            value: paddedValue,
+          },
+        });
+      } else {
+        await prisma.token_balances.create({
+          data: {
+            address: data.from_address,
+            currency_id: currency_id_number.id,
+            value: paddedValue,
+            chain_id: data.chain_id,
+          },
+        });
+      }
     }
   }
   if (data.to_address) {
@@ -386,24 +402,59 @@ async function updateTokenBalances(data: any, currency_id: string) {
     // console.log("toValue", toValue);
     if (toValue.length > 0) {
       const paddedValue = padTokenValue(toValue[0].snapshot);
-      await prisma.token_balances.upsert({
+
+      const currency_id_number = await prisma.currencies.findFirst({
         where: {
-          address_currency_id: {
-            address: data.to_address,
-            currency_id: currency_id,
-          },
+          address: currency_id,
           chain_id: data.chain_id,
-        },
-        create: {
-          address: data.to_address,
-          currency_id: currency_id,
-          value: paddedValue,
-          chain_id: data.chain_id,
-        },
-        update: {
-          value: paddedValue,
         },
       });
+      const existingRecord = await prisma.token_balances.findFirst({
+        where: {
+          address: data.to_address,
+          currency_id: currency_id_number.id,
+          chain_id: data.chain_id,
+        },
+      });
+      if (existingRecord) {
+        await prisma.token_balances.updateMany({
+          where: {
+              address: data.to_address,
+              currency_id: currency_id_number.id,
+              chain_id: data.chain_id,
+          },
+          data: {
+            value: paddedValue,
+          },
+        });
+      } else {
+        await prisma.token_balances.create({
+          data: {
+            address: data.to_address,
+            currency_id: currency_id_number.id,
+            value: paddedValue,
+            chain_id: data.chain_id,
+          },
+        });
+      }
+      // await prisma.token_balances.upsert({
+      //   where: {
+      //     address_currency_id: {
+      //       address: data.to_address,
+      //       currency_id: currency_id,
+      //     },
+      //     chain_id: data.chain_id,
+      //   },
+      //   create: {
+      //     address: data.to_address,
+      //     currency_id: currency_id,
+      //     value: paddedValue,
+      //     chain_id: data.chain_id,
+      //   },
+      //   update: {
+      //     value: paddedValue,
+      //   },
+      // });
     }
   }
 }
@@ -488,7 +539,7 @@ async function parsedTransactionLogs(
       // check if currency exist
       const existingCurrency = await prisma.currencies.findFirst({
         where: {
-          id: currency_id,
+          address: currency_id,
           chain_id: parsedTransaction.chain_id,
         },
       });
@@ -549,7 +600,7 @@ async function TransactionLogToTokenTransfers(
 async function createCurrencyInitial(web3: any, parsedBlock: any) {
   const existingCurrency = await prisma.currencies.findFirst({
     where: {
-      id: "0x0000000000000000000000000000000000000000",
+      address: "0x0000000000000000000000000000000000000000",
       chain_id: parsedBlock.chain_id,
     },
   });
@@ -871,7 +922,7 @@ async function toAddresses(parsedTransaction: any) {
     if (
       existingAddress.latest_active_time < parsedTransaction.created_timestamp
     ) {
-      await prisma.addresses.update({
+      await prisma.addresses.updateMany({
         where: { address: address, chain_id: parsedTransaction.chain_id },
         data: { latest_active_time: parsedTransaction.created_timestamp },
       });
@@ -883,7 +934,7 @@ async function toAddresses(parsedTransaction: any) {
     if (
       existingAddress.created_timestamp > parsedTransaction.created_timestamp
     ) {
-      await prisma.addresses.update({
+      await prisma.addresses.updateMany({
         where: { address: address, chain_id: parsedTransaction.chain_id },
         data: { created_timestamp: parsedTransaction.created_timestamp },
       });
@@ -917,7 +968,7 @@ async function parseBlockMinerAddress(block: any) {
   } else {
     // update latest_active_time
     if (existingAddress.latest_active_time < block.created_timestamp) {
-      await prisma.addresses.update({
+      await prisma.addresses.updateMany({
         where: { address: minerAddress, chain_id: block.chain_id },
         data: { latest_active_time: block.created_timestamp },
       });
@@ -927,7 +978,7 @@ async function parseBlockMinerAddress(block: any) {
     }
     // update created_timestamp
     if (existingAddress.created_timestamp > block.created_timestamp) {
-      await prisma.addresses.update({
+      await prisma.addresses.updateMany({
         where: { address: minerAddress, chain_id: block.chain_id },
         data: { created_timestamp: block.created_timestamp },
       });
@@ -954,12 +1005,18 @@ async function toTokenTransfers(parsedTransaction: any) {
       parsedTransaction.to_address &&
       parsedTransaction.value !== "0"
     ) {
+      const currency_id_number = await prisma.currencies.findFirst({
+        where: {
+          address: "0x0000000000000000000000000000000000000000",
+          chain_id: parsedTransaction.chain_id,
+        },
+      });
       const parsedTokenTransfer = {
         from_address: parsedTransaction.from_address,
         to_address: parsedTransaction.to_address,
         value: parsedTransaction.value,
         chain_id: parsedTransaction.chain_id,
-        currency_id: "0x0000000000000000000000000000000000000000",
+        currency_id: currency_id_number.id,
         transaction_hash: parsedTransaction.hash,
         index: 0,
         created_timestamp: parsedTransaction.created_timestamp,
@@ -1141,7 +1198,7 @@ async function toCurrencies(
   // create currency
   if (currency_id) {
     const existingCurrency = await prisma.currencies.findFirst({
-      where: { id: currency_id, chain_id: parsedTransaction.chain_id },
+      where: { address: currency_id, chain_id: parsedTransaction.chain_id },
     });
     if (!existingCurrency) {
       await createCurrency(currency_id, web3, parsedTransaction);
@@ -1157,9 +1214,9 @@ async function updateTotalTransfers(
 ) {
   if (parsedTransactionOrParsedTransactionLogsToTransfers.value !== "0") {
     // update currency total_transfers
-    await prisma.currencies.update({
+    await prisma.currencies.updateMany({
       where: {
-        id: currency_id,
+        address: currency_id,
         chain_id: parsedTransactionOrParsedTransactionLogsToTransfers.chain_id,
       },
       data: {
@@ -1235,7 +1292,7 @@ async function createCurrency(
     contractAddress === "0x0000000000000000000000000000000000000000"
   ) {
     const newCurrency = {
-      id: currency_id,
+      address: currency_id,
       risk_level: "1",
       price: 0,
       volume_in_24h: "0",
@@ -1263,7 +1320,7 @@ async function createERC20Currency(
 ) {
   try {
     const newCurrency = {
-      id: currency_id,
+      address: currency_id,
       risk_level: "1",
       price: 0,
       volume_in_24h: "0",
@@ -1299,9 +1356,9 @@ async function toCodes(codesData: any) {
 // update total amount for 原生幣種 in currencies table after parsing each block
 async function updateTotalAmount(parsedBlock: any) {
   if (parsedBlock) {
-    const originalCurrency = await prisma.currencies.findUnique({
+    const originalCurrency = await prisma.currencies.findFirst({
       where: {
-        id: "0x0000000000000000000000000000000000000000",
+        address: "0x0000000000000000000000000000000000000000",
         chain_id: parsedBlock.chain_id,
       },
     });
@@ -1310,9 +1367,9 @@ async function updateTotalAmount(parsedBlock: any) {
     const totalAmount = (
       BigInt(originalCurrency.total_amount) + BigInt(10 ** 18)
     ).toString();
-    await prisma.currencies.update({
+    await prisma.currencies.updateMany({
       where: {
-        id: "0x0000000000000000000000000000000000000000",
+        address: "0x0000000000000000000000000000000000000000",
         chain_id: parsedBlock.chain_id,
       },
       data: {

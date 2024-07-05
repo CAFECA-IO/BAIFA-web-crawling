@@ -58,7 +58,7 @@ async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
 
 async function updateTransactionReceiptFinished(blockNumber: number) {
   try {
-    await prisma.block_raw.update({
+    await prisma.block_raw.updateMany({
       where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
       data: { transaction_receipt_finished: true },
     });

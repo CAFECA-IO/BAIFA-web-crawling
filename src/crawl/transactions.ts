@@ -75,7 +75,7 @@ async function getAndSaveTransactionAndReceiptData(
 }
 
 async function getTransactionInfo(blockNumber: number) {
-  const transactionInfo = await prisma.block_raw.findUnique({
+  const transactionInfo = await prisma.block_raw.findFirst({
     where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
     select: {
       transaction_finished: true,
@@ -149,7 +149,7 @@ async function getNumberOfTransactions(blockNumber: number) {
 
 async function updateTransactionFinished(blockNumber: number) {
   try {
-    await prisma.block_raw.update({
+    await prisma.block_raw.updateMany({
       where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
       data: { transaction_finished: true },
     });

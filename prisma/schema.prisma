@@ -47,7 +47,7 @@ model block_raw {
   miner             String
   mix_hash          String
   nonce             String
-  number            Int @unique    
+  number            Int    
   parent_hash       String
   receipts_root     String
   sha3_uncles       String
@@ -176,7 +176,7 @@ model red_flags {
   symbol              String?
   related_addresses   String[]
   related_transactions String[]
-  currency_id         String?
+  currency_id         Int?
   currencies          currencies? @relation(fields: [currency_id], references: [id])                
   chains               chains? @relation(fields: [chain_id], references: [id])                
 }
@@ -193,7 +193,7 @@ model blocks {
   parent_hash         String?
   burnt_fees          String?   
   hash                String? @unique
-  number              Int? @unique
+  number              Int? 
   extra_data          String?
   transactions        transactions[]
   chains              chains? @relation(fields: [chain_id], references: [id])     
@@ -204,7 +204,7 @@ model token_balances {
   address             String?
   value               String?
   chain_id            Int?
-  currency_id         String? 
+  currency_id         Int? 
   chains              chains? @relation(fields: [chain_id], references: [id])
   currencies          currencies? @relation(fields: [currency_id], references: [id])  
   @@unique([address, currency_id], name: "address_currency_id")
@@ -217,7 +217,7 @@ model token_transfers {
   to_address          String?
   value               String?
   chain_id            Int?
-  currency_id         String? 
+  currency_id         Int? 
   transaction_hash    String?
   index               Int?
   created_timestamp   Int?
@@ -226,7 +226,8 @@ model token_transfers {
 }
 
 model currencies {
-  id                  String      @id 
+  id                  Int      @id @default(autoincrement())
+  address             String     
   risk_level          String?
   price               Int?
   volume_in_24h       String?
@@ -246,7 +247,7 @@ model addresses {
   id                  Int      @id @default(autoincrement())
   chain_id            Int? 
   created_timestamp   Int?
-  address             String? @unique
+  address             String? 
   score               Int?
   latest_active_time  Int?
   risk_records        risk_records[]

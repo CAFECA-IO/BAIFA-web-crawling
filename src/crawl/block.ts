@@ -112,6 +112,7 @@ async function crawlBlock(web3: any) {
             );
             break; // if success, break the loop
           } catch (error) {
+            throw new Error(error);
             attempts++;
             errorOccurred = true; // record error occurred
           }
@@ -124,6 +125,7 @@ async function crawlBlock(web3: any) {
             // eslint-disable-next-line no-console
             console.log(`爬取錯誤的區塊號碼: ${i}`);
           } catch (error) {
+            throw new Error(error);
             console.error(
               `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
             );
@@ -229,7 +231,7 @@ async function saveBlock(web3: any, i: number) {
 }
 
 async function checkBlockExisting(blockNumber: number) {
-  const existingBlock = await prisma.block_raw.findUnique({
+  const existingBlock = await prisma.block_raw.findFirst({
     where: {
       number: blockNumber,
       chain_id: CHAIN_INFO.chain_id,

@@ -34,7 +34,7 @@ export class ReviewService {
       },
     });
     // Info: (20240307 - Gibbs) update target address score
-    await prisma.addresses.update({
+    await prisma.addresses.updateMany({
       where: { address: createReviewDto.target },
       data: {
         score: averageStars._avg.stars,

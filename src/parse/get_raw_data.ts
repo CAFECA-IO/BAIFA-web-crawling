@@ -5,7 +5,7 @@ import prisma from "../client";
 
 // get block_raw data
 async function getBlockRawData(blockNumber: number) {
-  const block = await prisma.block_raw.findUnique({
+  const block = await prisma.block_raw.findFirst({
     where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
   });
   return block;

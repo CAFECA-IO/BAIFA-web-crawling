@@ -13,13 +13,13 @@ async function calculateHolderNumbers(currencyIds) {
     });
     // holder count !== holderNumbers, update holder count
     const holderCount = await prisma.currencies.findFirst({
-      where: { id: currencyId, chain_id: CHAIN_INFO.chain_id },
+      where: { address: currencyId, chain_id: CHAIN_INFO.chain_id },
       select: { holder_count: true },
     });
     if (holderCount.holder_count !== holderNumbers) {
       // update holder count of each currency in currencies table
-      await prisma.currencies.update({
-        where: { id: currencyId, chain_id: CHAIN_INFO.chain_id },
+      await prisma.currencies.updateMany({
+        where: { address: currencyId, chain_id: CHAIN_INFO.chain_id },
         data: { holder_count: holderNumbers },
       });
     }
@@ -56,13 +56,13 @@ async function calculateVolumeIn24h(currencyIds) {
     }
     // volume_in_24h !== volumeIn24h, update volume_in_24h
     const volume24h = await prisma.currencies.findFirst({
-      where: { id: currencyId, chain_id: CHAIN_INFO.chain_id },
+      where: { address: currencyId, chain_id: CHAIN_INFO.chain_id },
       select: { volume_in_24h: true },
     });
     if (volume24h.volume_in_24h !== volumeIn24hResult) {
       // update volume_in_24h of each currency in currencies table
-      await prisma.currencies.update({
-        where: { id: currencyId, chain_id: CHAIN_INFO.chain_id },
+      await prisma.currencies.updateMany({
+        where: { address: currencyId, chain_id: CHAIN_INFO.chain_id },
         data: { volume_in_24h: volumeIn24hResult },
       });
     }
@@ -75,8 +75,8 @@ async function scheduleCalculateHolderVolume() {
     // get all currency ids from currencies table
     const currencyIds = await prisma.currencies.findMany({
       where: { chain_id: CHAIN_INFO.chain_id },
-      select: { id: true },
-      distinct: ["id"],
+      select: { address: true },
+      distinct: ["address"],
     });
     await calculateHolderNumbers(currencyIds);
     await calculateVolumeIn24h(currencyIds);
