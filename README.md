@@ -19,8 +19,8 @@ Here are the main steps to set up the compilation environment and run the crawle
 
 4. Run the crawler using PM2
 
-
-### :green_circle Set up the compilation environment
+-----
+###  Set up the compilation environment
 - Install Git
 
 ### Connect to the remote server and open the terminal
@@ -42,7 +42,7 @@ Here are the main steps to set up the compilation environment and run the crawle
   sudo chown -R ${user} /workspace
   ```
 
-### :green_circle Go to the workspace directory
+### Go to the workspace directory
 - Use the following command to navigate to the `/workspace` directory:
   ```
   cd /workspace
@@ -106,7 +106,7 @@ Here are the main steps to set up the compilation environment and run the crawle
 - Press `Esc` to exit the edit mode
 - Type `:wq` and press `Enter` to save the changes and exit the file
 
-### :green_circle Install packages
+### Install packages
 - Use the following command to install the required packages:
   ```
   npm install
@@ -118,7 +118,7 @@ Here are the main steps to set up the compilation environment and run the crawle
   npx prisma db push --schema=./prisma/schema.prisma
   ```
 
-### :green_circle Install PM2 
+### Install PM2 
 - Use the following command to install PM2:
   ```
   npm install pm2 -g
