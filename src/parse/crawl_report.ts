@@ -4,6 +4,7 @@ import prisma from "../client";
 import { BalanceSheetsNeoSchema } from "./report_schema/balance_sheets_neo";
 import { ComprehensiveIncomeNeoSchema } from "./report_schema/comprehensive_income_neo";
 import { CashFlowNeoSchema } from "./report_schema/cash_flow_neo";
+import { CHAIN_INFO } from "src/constants/chain_info";
 
 const abi = [
   {
@@ -156,7 +157,7 @@ const abi = [
 // const prisma = new PrismaClient();
 
 // 創建智能合約實例
-const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);
+const provider = new ethers.JsonRpcProvider(`https://bolt.baifa.io/`);
 
 // 用於存儲 contractInstance 的快取
 const contractInstancesCache = {};
@@ -196,6 +197,7 @@ async function putReport(lackReportEvidences) {
     await prisma.evidences.update({
       where: {
         evidence_id: evidence.evidence_id,
+        chain_id: evidence.chain_id,
       },
       data: {
         content: reportData,
@@ -3506,6 +3508,7 @@ async function schedulePutReport() {
         report_address: {
           not: null,
         },
+        chain_id: CHAIN_INFO.chain_id,
       },
     });
     if (lackReportEvidences.length > 0) {

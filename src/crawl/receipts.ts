@@ -1,4 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
+import { CHAIN_INFO } from "src/constants/chain_info";
 import prisma from "../client";
 // const prisma = new PrismaClient();
 
@@ -6,16 +7,21 @@ async function getTransactionReceiptAndSave(
   web3: any,
   transactionHash: string,
 ) {
+  const transaction = await web3.eth.getTransaction(transactionHash);
   // check if the transaction receipt exists in the database
   const existingTransactionReceipt =
     await prisma.transaction_receipt_raw.findUnique({
-      where: { transaction_hash: transactionHash },
+      where: {
+        transaction_hash: transactionHash,
+        chain_id: transaction.chainId,
+      },
     });
   if (!existingTransactionReceipt) {
     // Get the transaction receipt by transaction hash
     const transactionReceipt =
       await web3.eth.getTransactionReceipt(transactionHash);
     const data = {
+      chain_id: transaction.chainId,
       transaction_hash: transactionReceipt.transactionHash.toString(),
       transaction_index: transactionReceipt.transactionIndex.toString(),
       block_hash: transactionReceipt.blockHash.toString(),
@@ -45,7 +51,7 @@ async function getTransactionReceiptAndSave(
 async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
   const numberOfTransactionReceiptsOfBlock =
     await prisma.transaction_receipt_raw.count({
-      where: { block_number: blockNumber },
+      where: { block_number: blockNumber, chain_id: CHAIN_INFO.chain_id },
     });
   return numberOfTransactionReceiptsOfBlock;
 }
@@ -53,7 +59,7 @@ async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
 async function updateTransactionReceiptFinished(blockNumber: number) {
   try {
     await prisma.block_raw.update({
-      where: { number: blockNumber },
+      where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
       data: { transaction_receipt_finished: true },
     });
     // Deprecated: print updateTransactionReceiptFinished (20231225 - Gibbs)

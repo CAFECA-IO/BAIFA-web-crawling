@@ -1,6 +1,7 @@
 // import { PrismaClient } from "@prisma/client";
 import prisma from "../client";
 import { crawlTransactionAndReceipt } from "./transactions";
+import { CHAIN_INFO } from "src/constants/chain_info";
 
 // const prisma = new PrismaClient();
 
@@ -17,10 +18,11 @@ async function crawlBlock(web3: any) {
   // Deprecated: print latestBlockNumber (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("latestBlockNumber:", latestBlockNumber);
-  // get bigEnd and smallEnd from block_raw table
+  // get bigEnd and smallEnd from block_raw table in specific chain_id
   const blockNumbers = await prisma.block_raw.findMany({
     select: { number: true },
     orderBy: { number: "desc" },
+    where: { chain_id: CHAIN_INFO.chain_id },
   });
   // Deprecated: print blockNumbers (20231225 - Gibbs)
   // eslint-disable-next-line no-console
@@ -192,6 +194,7 @@ async function saveBlock(web3: any, i: number) {
   // Get the block details by block number
   const block = await web3.eth.getBlock(i);
   const data = {
+    chain_id: CHAIN_INFO.chain_id,
     base_fee_per_gas: block.baseFeePerGas.toString(),
     number: Number(block.number),
     hash: block.hash.toString(),
@@ -227,7 +230,10 @@ async function saveBlock(web3: any, i: number) {
 
 async function checkBlockExisting(blockNumber: number) {
   const existingBlock = await prisma.block_raw.findUnique({
-    where: { number: blockNumber },
+    where: {
+      number: blockNumber,
+      chain_id: CHAIN_INFO.chain_id,
+    },
   });
   return existingBlock;
 }

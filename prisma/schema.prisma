@@ -10,7 +10,6 @@ datasource dbPostgresql {
   url = env("DATABASE_URL")
 }
 
-
 model transaction_raw {
   id                  Int    @id @default(autoincrement())
   block_hash           String
@@ -36,51 +35,53 @@ model transaction_raw {
 }
 
 model block_raw {
-  id               Int    @id @default(autoincrement())
-  base_fee_per_gas    String
-  difficulty       String
+  id                Int    @id @default(autoincrement())
+  chain_id          Int
+  base_fee_per_gas  String
+  difficulty        String
   extra_data        String
   gas_limit         String
   gas_used          String
-  hash             String @unique   
+  hash              String @unique   
   logs_bloom        String
-  miner            String
+  miner             String
   mix_hash          String
-  nonce            String
-  number           Int @unique    
+  nonce             String
+  number            Int @unique    
   parent_hash       String
   receipts_root     String
   sha3_uncles       String
-  size             String
+  size              String
   state_root        String
-  timestamp        String
+  timestamp         String
   total_difficulty  String
   transactions_root String
-  uncles           Json
-  burnt_fees Int 
+  uncles            Json
+  burnt_fees        Int 
   transaction_count Int
-  transaction_finished        Boolean  @default(false)
+  transaction_finished         Boolean  @default(false)
   transaction_receipt_finished Boolean  @default(false)
-  parse_finished  Boolean  @default(false)
+  parse_finished               Boolean  @default(false)
 }
 
 model transaction_receipt_raw {
-  id                  Int      @id @default(autoincrement())
+  id                   Int      @id @default(autoincrement())
+  chain_id             Int
   block_hash           String
   block_number         Int
   contract_address     String
-  cumulative_gas_used   String
-  effective_gas_price   String
-  from                String
+  cumulative_gas_used  String
+  effective_gas_price  String
+  from                 String
   gas_used             String
-  logs                Json
+  logs                 Json
   logs_bloom           String
-  status              String
-  to                  String
+  status               String
+  to                   String
   transaction_hash     String @unique
   transaction_index    String
-  type                String
-  parse_finished  Boolean  @default(false)
+  type                 String
+  parse_finished       Boolean  @default(false)
 }
 
 model contracts {
@@ -96,6 +97,7 @@ model contracts {
 
 model public_tags {
   id                  Int      @id @default(autoincrement())
+  chain_id            Int
   name                String?
   target              String?
   target_type         String?
@@ -156,6 +158,7 @@ model transactions {
 
 model review_datas {
   id                  Int      @id @default(autoincrement())
+  chain_id            Int
   target              String? 
   target_type         String?
   created_timestamp   Int?
@@ -252,6 +255,7 @@ model addresses {
 
 model risk_records {
   id                  Int      @id @default(autoincrement())
+  chain_id            Int
   name                String?
   address_id          Int? 
   created_timestamp   Int?

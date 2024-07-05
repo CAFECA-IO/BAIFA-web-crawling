@@ -5,11 +5,11 @@ import { toChains, toCodes } from "./parse/parsers";
 import codesData from "./parse/codes";
 
 const chainData = {
-  chain_id: 8017,
-  chain_name: "iSunChain",
-  symbol: "ISC",
+  chain_id: 58017,
+  chain_name: "BOLT",
+  symbol: "BLT",
   decimals: 18,
-  rpc: "https://isuncoin.baifa.io/",
+  rpc: "https://bolt.baifa.io/",
 };
 
 class Parser {

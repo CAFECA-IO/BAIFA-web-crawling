@@ -56,6 +56,7 @@ async function parsing(web3: any) {
   const startBlockNumber =
     (
       await prisma.blocks.findFirst({
+        where: { chain_id: chainData.chain_id },
         select: { number: true },
         orderBy: { number: "desc" },
       })
@@ -64,6 +65,7 @@ async function parsing(web3: any) {
   const endBlockNumber =
     (
       await prisma.block_raw.findFirst({
+        where: { chain_id: chainData.chain_id },
         select: { number: true },
         orderBy: { number: "desc" },
       })

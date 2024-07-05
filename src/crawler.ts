@@ -4,6 +4,7 @@ import { Logger } from "@nestjs/common";
 // import { PrismaClient } from "@prisma/client";
 import prisma from "./client";
 import { crawlBlock } from "./crawl/block";
+import { CHAIN_INFO } from "./constants/chain_info";
 
 // const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ class Crawler {
     // eslint-disable-next-line no-console
     console.log("Crawler constructor");
     // Info: (20240111 - Gibbs) Connect to the iSunCoin node
-    this.web3 = new Web3("https://isuncoin.baifa.io/");
+    this.web3 = new Web3("https://bolt.baifa.io/");
     this.logger = new Logger();
   }
 
@@ -39,7 +40,12 @@ class Crawler {
     console.log("Crawler go");
     // Info: (20240115 - Gibbs) use prisma client to store raw data
     await crawlBlock(this.web3);
-    const dataCount = await prisma.block_raw.count();
+    // where chain id
+    const dataCount = await prisma.block_raw.count({
+      where: {
+        chain_id: CHAIN_INFO.chain_id,
+      },
+    });
     // Deprecated: check crawl block end (20231225 - Gibbs)
     // eslint-disable-next-line no-console
     console.log("crawl block end, dataCount:", dataCount);
