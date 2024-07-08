@@ -289,10 +289,11 @@ async function toTransactions(
           where: { hash: transaction.hash, chain_id: transaction.chain_id },
           data: { parse_finished: true },
         });
+        const chainIdNumber = Number(transaction.chain_id);
         await prisma.transaction_receipt_raw.update({
           where: {
             transaction_hash: transaction.hash,
-            chain_id: transaction.chain_id,
+            chain_id: chainIdNumber,
           },
           data: { parse_finished: true },
         });
