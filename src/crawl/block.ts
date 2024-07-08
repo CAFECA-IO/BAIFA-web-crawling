@@ -36,7 +36,6 @@ async function crawlBlock(web3: any) {
   // Deprecated: print bigEnd and smallEnd (20231225 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("bigEnd:", bigEnd, "smallEnd:", smallEnd);
-
   // (old) get block from bigEnd to latest block
   /*
   if (latestBlockNumber > bigEnd) {

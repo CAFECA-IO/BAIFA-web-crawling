@@ -8,12 +8,13 @@ async function getTransactionReceiptAndSave(
   transactionHash: string,
 ) {
   const transaction = await web3.eth.getTransaction(transactionHash);
+  const transChainIdNumber = Number(transaction.chainId);
   // check if the transaction receipt exists in the database
   const existingTransactionReceipt =
     await prisma.transaction_receipt_raw.findUnique({
       where: {
         transaction_hash: transactionHash,
-        chain_id: transaction.chainId,
+        chain_id: transChainIdNumber,
       },
     });
   if (!existingTransactionReceipt) {
@@ -21,7 +22,7 @@ async function getTransactionReceiptAndSave(
     const transactionReceipt =
       await web3.eth.getTransactionReceipt(transactionHash);
     const data = {
-      chain_id: transaction.chainId,
+      chain_id: transChainIdNumber,
       transaction_hash: transactionReceipt.transactionHash.toString(),
       transaction_index: transactionReceipt.transactionIndex.toString(),
       block_hash: transactionReceipt.blockHash.toString(),

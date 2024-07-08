@@ -8,7 +8,7 @@
 
 export const CHAIN_INFO = {
   chain_id: 8017,
-  chain_name: "iSunChain",
+  chain_name: "iSunCoin",
   symbol: "ISC",
   decimal: 18,
   rpc: "https://isuncoin.baifa.io/",

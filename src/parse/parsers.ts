@@ -419,9 +419,9 @@ async function updateTokenBalances(data: any, currency_id: string) {
       if (existingRecord) {
         await prisma.token_balances.updateMany({
           where: {
-              address: data.to_address,
-              currency_id: currency_id_number.id,
-              chain_id: data.chain_id,
+            address: data.to_address,
+            currency_id: currency_id_number.id,
+            chain_id: data.chain_id,
           },
           data: {
             value: paddedValue,
@@ -802,20 +802,24 @@ async function type(transaction: any, transactionReceipt: any) {
   99 Others
     */
   // create contract
-  if (transactionReceipt.contract_address !== "null") {
+
+  if (
+    transactionReceipt?.contract_address &&
+    transactionReceipt.contract_address !== "null"
+  ) {
     return "1";
     // normal transaction
-  } else if (transaction.input === "0x") {
+  } else if (transaction?.input === "0x") {
     return "0";
     // ERC20 transfer
-  } else if (transaction.input.substring(0, 10) === "0xa9059cbb") {
+  } else if (transaction?.input.substring(0, 10) === "0xa9059cbb") {
     return "2";
     // ERC721 transferFrom
-  } else if (transaction.input.substring(0, 10) === "0x23b872dd") {
+  } else if (transaction?.input.substring(0, 10) === "0x23b872dd") {
     return "3";
     // evidence
     // new: 0xaddd4bd3 old: 0xb6aca21a test: 0x60806040
-  } else if (transaction.input.substring(0, 10) === "0xaddd4bd3") {
+  } else if (transaction?.input.substring(0, 10) === "0xaddd4bd3") {
     return "4";
   } else {
     return "99";
@@ -1302,6 +1306,7 @@ async function createCurrency(
       total_transfers: 0,
       chain_id: parsedTransactionOrBlock.chain_id,
       name: CHAIN_INFO.chain_name,
+      decimals: CHAIN_INFO.decimal,
     };
     await prisma.currencies.create({
       data: newCurrency,
@@ -1330,6 +1335,7 @@ async function createERC20Currency(
       total_transfers: 0,
       chain_id: parsedTransactionOrBlock.chain_id,
       name: await contract.methods.name().call(),
+      decimals: await contract.methods.decimals().call(),
     };
     return newCurrency;
   } catch (error) {
@@ -1362,8 +1368,6 @@ async function updateTotalAmount(parsedBlock: any) {
         chain_id: parsedBlock.chain_id,
       },
     });
-    // console.log("parsedBlock", parsedBlock)
-    // console.log("originalCurrency", originalCurrency)
     const totalAmount = (
       BigInt(originalCurrency.total_amount) + BigInt(10 ** 18)
     ).toString();

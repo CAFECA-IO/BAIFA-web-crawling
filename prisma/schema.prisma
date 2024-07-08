@@ -237,6 +237,7 @@ model currencies {
   total_transfers     Int?
   chain_id            Int?
   name                String?
+  decimals            Int?
   token_transfers     token_transfers[]
   red_flags           red_flags[]
   token_balances      token_balances[]
