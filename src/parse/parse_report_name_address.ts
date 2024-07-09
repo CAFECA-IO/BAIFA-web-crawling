@@ -1,7 +1,7 @@
-import { CHAIN_INFO } from "src/constants/chain_info";
+import { chainInfo } from "../lib/chain_info";
 import Web3 from "web3";
 
-const web3 = new Web3(CHAIN_INFO.rpc);
+const web3 = new Web3(chainInfo.rpc);
 const MIN_HEX_LENGTH = 450;
 
 // 解析reportName

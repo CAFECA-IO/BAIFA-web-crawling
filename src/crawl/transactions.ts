@@ -1,5 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
-import { CHAIN_INFO } from "src/constants/chain_info";
+import { chainInfo } from "../lib/chain_info";
 import prisma from "../client";
 import {
   getTransactionReceiptAndSave,
@@ -76,7 +76,7 @@ async function getAndSaveTransactionAndReceiptData(
 
 async function getTransactionInfo(blockNumber: number) {
   const transactionInfo = await prisma.block_raw.findFirst({
-    where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
+    where: { number: blockNumber, chain_id: chainInfo.chainId },
     select: {
       transaction_finished: true,
       transaction_count: true,
@@ -95,7 +95,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
   // eslint-disable-next-line no-console
   // console.log("transaction:", transaction);
   // check if the transaction hash exists in the database
-  const chain_id = CHAIN_INFO.chain_id.toString();
+  const chain_id = chainInfo.chainId.toString();
   const existingTransaction = await prisma.transaction_raw.findUnique({
     where: { hash: transactionHash, chain_id: chain_id },
   });
@@ -137,7 +137,7 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
 }
 
 async function getNumberOfTransactions(blockNumber: number) {
-  const chain_id = CHAIN_INFO.chain_id.toString();
+  const chain_id = chainInfo.chainId.toString();
   const numberOfTransactionsOfBlock = await prisma.transaction_raw.count({
     where: { block_number: blockNumber, chain_id: chain_id },
   });
@@ -150,7 +150,7 @@ async function getNumberOfTransactions(blockNumber: number) {
 async function updateTransactionFinished(blockNumber: number) {
   try {
     await prisma.block_raw.updateMany({
-      where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
+      where: { number: blockNumber, chain_id: chainInfo.chainId },
       data: { transaction_finished: true },
     });
     // Deprecated:  check update transaction_finished (20231225 - Gibbs)

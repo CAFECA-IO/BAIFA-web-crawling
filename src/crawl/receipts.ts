@@ -1,5 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
-import { CHAIN_INFO } from "src/constants/chain_info";
+import { chainInfo } from "../lib/chain_info";
 import prisma from "../client";
 // const prisma = new PrismaClient();
 
@@ -52,7 +52,7 @@ async function getTransactionReceiptAndSave(
 async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
   const numberOfTransactionReceiptsOfBlock =
     await prisma.transaction_receipt_raw.count({
-      where: { block_number: blockNumber, chain_id: CHAIN_INFO.chain_id },
+      where: { block_number: blockNumber, chain_id: chainInfo.chainId },
     });
   return numberOfTransactionReceiptsOfBlock;
 }
@@ -60,7 +60,7 @@ async function getNumberOfTransactionReceiptsOfBlock(blockNumber: number) {
 async function updateTransactionReceiptFinished(blockNumber: number) {
   try {
     await prisma.block_raw.updateMany({
-      where: { number: blockNumber, chain_id: CHAIN_INFO.chain_id },
+      where: { number: blockNumber, chain_id: chainInfo.chainId },
       data: { transaction_receipt_finished: true },
     });
     // Deprecated: print updateTransactionReceiptFinished (20231225 - Gibbs)

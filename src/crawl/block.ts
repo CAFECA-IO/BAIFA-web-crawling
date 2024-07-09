@@ -1,7 +1,7 @@
 // import { PrismaClient } from "@prisma/client";
 import prisma from "../client";
 import { crawlTransactionAndReceipt } from "./transactions";
-import { CHAIN_INFO } from "src/constants/chain_info";
+import { chainInfo } from "../lib/chain_info";
 
 // const prisma = new PrismaClient();
 
@@ -22,7 +22,7 @@ async function crawlBlock(web3: any) {
   const blockNumbers = await prisma.block_raw.findMany({
     select: { number: true },
     orderBy: { number: "desc" },
-    where: { chain_id: CHAIN_INFO.chain_id },
+    where: { chain_id: chainInfo.chainId },
   });
   // Deprecated: print blockNumbers (20231225 - Gibbs)
   // eslint-disable-next-line no-console
@@ -111,9 +111,11 @@ async function crawlBlock(web3: any) {
             );
             break; // if success, break the loop
           } catch (error) {
-            throw new Error(error);
             attempts++;
             errorOccurred = true; // record error occurred
+            // wait 3 seconds
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            throw new Error(error);
           }
         }
         if (errorOccurred && attempts >= 3) {
@@ -124,10 +126,11 @@ async function crawlBlock(web3: any) {
             // eslint-disable-next-line no-console
             console.log(`爬取錯誤的區塊號碼: ${i}`);
           } catch (error) {
-            throw new Error(error);
+            // eslint-disable-next-line no-console
             console.error(
               `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
             );
+            throw new Error(error);
           }
         }
         // if (errorOccurred && attempts >= 3) {
@@ -164,6 +167,9 @@ async function crawlBlock(web3: any) {
           } catch (error) {
             attempts++;
             errorOccurred = true; // record error occurred
+            // wait 3 seconds
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            throw new Error(error);
           }
         }
         if (errorOccurred && attempts >= 3) {
@@ -174,9 +180,11 @@ async function crawlBlock(web3: any) {
             // eslint-disable-next-line no-console
             console.log(`爬取錯誤的區塊號碼: ${i}`);
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error(
               `寫入 errorLogPath 錯誤, 爬取錯誤的區塊號碼: ${i}, 錯誤: ${error}`,
             );
+            throw new Error(error);
           }
         }
         // if (errorOccurred && attempts >= 3) {
@@ -195,7 +203,7 @@ async function saveBlock(web3: any, i: number) {
   // Get the block details by block number
   const block = await web3.eth.getBlock(i);
   const data = {
-    chain_id: CHAIN_INFO.chain_id,
+    chain_id: chainInfo.chainId,
     base_fee_per_gas: block.baseFeePerGas.toString(),
     number: Number(block.number),
     hash: block.hash.toString(),
@@ -233,7 +241,7 @@ async function checkBlockExisting(blockNumber: number) {
   const existingBlock = await prisma.block_raw.findFirst({
     where: {
       number: blockNumber,
-      chain_id: CHAIN_INFO.chain_id,
+      chain_id: chainInfo.chainId,
     },
   });
   return existingBlock;

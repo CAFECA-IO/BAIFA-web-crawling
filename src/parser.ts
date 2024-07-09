@@ -3,14 +3,14 @@ import { Logger } from "@nestjs/common";
 import { parsing } from "./parse/parsing";
 import { toChains, toCodes } from "./parse/parsers";
 import codesData from "./parse/codes";
-import { CHAIN_INFO } from "./constants/chain_info";
+import { chainInfo } from "./lib/chain_info";
 
 const chainData = {
-  chain_id: CHAIN_INFO.chain_id,
-  chain_name: CHAIN_INFO.chain_name,
-  symbol: CHAIN_INFO.symbol,
-  decimals: CHAIN_INFO.decimal,
-  rpc: CHAIN_INFO.rpc,
+  chain_id: chainInfo.chainId,
+  chain_name: chainInfo.chainName,
+  symbol: chainInfo.symbol,
+  decimals: chainInfo.decimal,
+  rpc: chainInfo.rpc,
 };
 
 class Parser {
