@@ -2,7 +2,7 @@
 This guide will walk you through the steps to set up the BAIFA web crawler on a remote server.
 
 ### Deploy crawler - remote server
-- last updated on 2024-07-05
+- last updated on 2024-07-09
 
 ### Environment
 - Ubuntu 22.04
@@ -78,33 +78,16 @@ Here are the main steps to set up the compilation environment and run the crawle
     ```
     DATABASE_URL="postgresql://[name]:[password]@[host]:5432/[database_name]"
     ```
+  - Update chain info, default setting is "iSunCoin" chain
+    ```
+    CHAIN_ID=[chain number, type: number]
+    CHAIN_NAME="[chain name, type: string]"
+    SYMBOL="[chain symbol, type: string]"
+    DECIMAL=[chain decimal, type: number]
+    RPC="[chain rpc url, type: string]"
+    ```
 - Press `Esc` to exit edit mode
 - Type `:wq` and press `Enter` to save and exit
-
-### Navigate to the src/constants directory
-- Use the following command to navigate to the `src/constants` directory:
-  ```
-  cd src/constants
-  ```
-
-### Edit the chain_info.ts file
-- Use the following command to edit the `chain_info.ts` file:
-  ```
-  vi chain_info.ts
-  ```
-- Press `i` to enter the edit mode
-  - Modify the file content to set it to the desired blockchain information to be executed, for example:
-    ```typescript
-    export const CHAIN_INFO = {
-      chain_id: number,
-      chain_name: string,
-      symbol: string,
-      decimals: number,
-      rpc: string url,
-    };
-    ```
-- Press `Esc` to exit the edit mode
-- Type `:wq` and press `Enter` to save the changes and exit the file
 
 ### Install packages
 - Use the following command to install the required packages:
