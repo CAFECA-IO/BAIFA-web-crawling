@@ -1,3 +1,9 @@
+import { config } from "dotenv";
+
+if (process.env.NODE_ENV !== "production") {
+  config();
+}
+
 export const chainInfo = {
   chainId: Number(process.env.CHAIN_ID) || 8017,
   chainName: process.env.CHAIN_NAME || "iSunCoin",
