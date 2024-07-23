@@ -6,7 +6,6 @@ import abi from "./abi";
 
 // import parseReportNameAddress
 import { parseReportNameAddress } from "./parse_report_name_address";
-import { parse } from "path";
 
 // const prisma = new PrismaClient();
 
@@ -347,7 +346,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
         chain_id: data.chain_id,
       },
       orderBy: {
-        created_timestamp: "desc",
+        id: "desc",
       },
       take: 1,
     });
@@ -398,7 +397,7 @@ async function updateTokenBalances(data: any, currency_id: string) {
         chain_id: data.chain_id,
       },
       orderBy: {
-        created_timestamp: "desc",
+        id: "desc",
       },
       take: 1,
     });
