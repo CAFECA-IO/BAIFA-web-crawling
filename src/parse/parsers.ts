@@ -77,6 +77,8 @@ async function toBlocks(
     console.log("parse to blocks table success", parsedBlock.number);
     await createCurrencyInitial(web3, parsedBlock);
     await parseBlockMinerAddress(parsedBlock);
+    // update block reward to token balances
+    await updateRewardToTokenBalances(parsedBlock);
     return parsedBlock;
   }
 }
@@ -1398,6 +1400,50 @@ function padTokenValue(value) {
     : "0".repeat(paddingSize) + stringValue;
 
   return paddedValue;
+}
+
+async function updateRewardToTokenBalances(parsedBlock: any) {
+  // check address if it is miner, yes, update reward to token_balances; no, create
+  const minerAddress = parsedBlock.miner;
+  const chainId = parsedBlock.chain_id;
+  const currency = await prisma.currencies.findFirst({
+    where: {
+      address: "0x0000000000000000000000000000000000000000",
+      chain_id: chainId,
+    },
+  });
+  const existingAddress = await prisma.token_balances.findFirst({
+    where: {
+      address: minerAddress,
+      chain_id: chainId,
+      currency_id: currency.id,
+    },
+  });
+  if (!existingAddress) {
+    const parsedTokenBalance = {
+      address: minerAddress,
+      currency_id: currency.id,
+      value: parsedBlock.reward,
+      chain_id: chainId,
+    };
+    await prisma.token_balances.create({
+      data: parsedTokenBalance,
+    });
+  } else {
+    const paddedValue = padTokenValue(
+      (BigInt(existingAddress.value) + BigInt(parsedBlock.reward)).toString(),
+    );
+    await prisma.token_balances.updateMany({
+      where: {
+        address: minerAddress,
+        currency_id: currency.id,
+        chain_id: chainId,
+      },
+      data: {
+        value: paddedValue,
+      },
+    });
+  }
 }
 
 export {
