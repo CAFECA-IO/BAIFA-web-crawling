@@ -1425,30 +1425,32 @@ async function updateRewardToTokenBalances(parsedBlock: any) {
     },
   });
   // avoid 0x00...0
-  if (!existingAddress && parsedBlock.created_timestamp !== 0) {
-    const parsedTokenBalance = {
-      address: minerAddress,
-      currency_id: currency.id,
-      value: parsedBlock.reward,
-      chain_id: chainId,
-    };
-    await prisma.token_balances.create({
-      data: parsedTokenBalance,
-    });
-  } else {
-    const paddedValue = padTokenValue(
-      (BigInt(existingAddress.value) + BigInt(parsedBlock.reward)).toString(),
-    );
-    await prisma.token_balances.updateMany({
-      where: {
+  if (parsedBlock.created_timestamp !== 0) {
+    if (!existingAddress) {
+      const parsedTokenBalance = {
         address: minerAddress,
         currency_id: currency.id,
+        value: parsedBlock.reward,
         chain_id: chainId,
-      },
-      data: {
-        value: paddedValue,
-      },
-    });
+      };
+      await prisma.token_balances.create({
+        data: parsedTokenBalance,
+      });
+    } else {
+      const paddedValue = padTokenValue(
+        (BigInt(existingAddress.value) + BigInt(parsedBlock.reward)).toString(),
+      );
+      await prisma.token_balances.updateMany({
+        where: {
+          address: minerAddress,
+          currency_id: currency.id,
+          chain_id: chainId,
+        },
+        data: {
+          value: paddedValue,
+        },
+      });
+    }
   }
 }
 
