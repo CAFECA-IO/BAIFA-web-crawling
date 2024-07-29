@@ -1424,7 +1424,8 @@ async function updateRewardToTokenBalances(parsedBlock: any) {
       currency_id: currency.id,
     },
   });
-  if (!existingAddress) {
+  // avoid 0x00...0
+  if (!existingAddress && parsedBlock.created_timestamp !== 0) {
     const parsedTokenBalance = {
       address: minerAddress,
       currency_id: currency.id,
