@@ -4,6 +4,7 @@ import prisma from "../client";
 import { BalanceSheetsNeoSchema } from "./report_schema/balance_sheets_neo";
 import { ComprehensiveIncomeNeoSchema } from "./report_schema/comprehensive_income_neo";
 import { CashFlowNeoSchema } from "./report_schema/cash_flow_neo";
+import { chainInfo } from "../lib/chain_info";
 
 const abi = [
   {
@@ -156,7 +157,7 @@ const abi = [
 // const prisma = new PrismaClient();
 
 // 創建智能合約實例
-const provider = new ethers.JsonRpcProvider(`https://isuncoin.baifa.io`);
+const provider = new ethers.JsonRpcProvider(chainInfo.rpc);
 
 // 用於存儲 contractInstance 的快取
 const contractInstancesCache = {};
@@ -168,6 +169,7 @@ async function putReport(lackReportEvidences) {
   3. put report data into evidences content column 
    **/
   // get the evidences which lack of content data, but have report address
+  // eslint-disable-next-line no-console
   console.log("put report starting...");
   // loop the lackReportEvidences, use crawlReport function to get report data
   // 將所有異步操作包裝成 promise 並存入一個陣列中
@@ -196,6 +198,7 @@ async function putReport(lackReportEvidences) {
     await prisma.evidences.update({
       where: {
         evidence_id: evidence.evidence_id,
+        chain_id: evidence.chain_id,
       },
       data: {
         content: reportData,
@@ -205,9 +208,11 @@ async function putReport(lackReportEvidences) {
   // 等待所有更新操作完成
   await Promise.all(updatePromises)
     .then(() => {
+      // eslint-disable-next-line no-console
       console.log("put all report success");
     })
     .catch((error) => {
+      // eslint-disable-next-line no-console
       console.error("An error occurred:", error);
     });
 }
@@ -239,6 +244,7 @@ async function getContractValue(
 }
 
 async function crawlReport(reportId, reportName, contractInstance) {
+  // eslint-disable-next-line no-console
   console.log("start crawling report, report id", reportId);
   /*startTime*/ const startTime = await getContractValue(
     reportName,
@@ -3486,6 +3492,7 @@ async function crawlReport(reportId, reportName, contractInstance) {
     // eslint-disable-next-line no-console
     console.log("Validation success for cashFlow");
   }
+  // eslint-disable-next-line no-console
   console.log("complete crawling report, report id", reportId);
   return JSON.stringify(reportData);
 }
@@ -3506,15 +3513,18 @@ async function schedulePutReport() {
         report_address: {
           not: null,
         },
+        chain_id: chainInfo.chainId,
       },
     });
     if (lackReportEvidences.length > 0) {
       await putReport(lackReportEvidences);
     } else {
+      // eslint-disable-next-line no-console
       console.log("No report to put");
     }
     // set time interval 3 mins
     await new Promise((resolve) => setTimeout(resolve, 180000));
+    // eslint-disable-next-line no-console
     console.log("schedule put report end");
   }
 }

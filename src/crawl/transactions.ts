@@ -1,4 +1,5 @@
 // import { PrismaClient } from "@prisma/client";
+import { chainInfo } from "../lib/chain_info";
 import prisma from "../client";
 import {
   getTransactionReceiptAndSave,
@@ -74,8 +75,8 @@ async function getAndSaveTransactionAndReceiptData(
 }
 
 async function getTransactionInfo(blockNumber: number) {
-  const transactionInfo = await prisma.block_raw.findUnique({
-    where: { number: blockNumber },
+  const transactionInfo = await prisma.block_raw.findFirst({
+    where: { number: blockNumber, chain_id: chainInfo.chainId },
     select: {
       transaction_finished: true,
       transaction_count: true,
@@ -94,8 +95,9 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
   // eslint-disable-next-line no-console
   // console.log("transaction:", transaction);
   // check if the transaction hash exists in the database
+  const chain_id = chainInfo.chainId.toString();
   const existingTransaction = await prisma.transaction_raw.findUnique({
-    where: { hash: transactionHash },
+    where: { hash: transactionHash, chain_id: chain_id },
   });
   if (!existingTransaction) {
     // use prisma client to store raw data
@@ -135,8 +137,9 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
 }
 
 async function getNumberOfTransactions(blockNumber: number) {
+  const chain_id = chainInfo.chainId.toString();
   const numberOfTransactionsOfBlock = await prisma.transaction_raw.count({
-    where: { block_number: blockNumber },
+    where: { block_number: blockNumber, chain_id: chain_id },
   });
   // Deprecated: print numberOfTransactionsOfBlock (20231225 - Gibbs)
   // eslint-disable-next-line no-console
@@ -146,8 +149,8 @@ async function getNumberOfTransactions(blockNumber: number) {
 
 async function updateTransactionFinished(blockNumber: number) {
   try {
-    await prisma.block_raw.update({
-      where: { number: blockNumber },
+    await prisma.block_raw.updateMany({
+      where: { number: blockNumber, chain_id: chainInfo.chainId },
       data: { transaction_finished: true },
     });
     // Deprecated:  check update transaction_finished (20231225 - Gibbs)

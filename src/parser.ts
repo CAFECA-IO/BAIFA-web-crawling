@@ -3,13 +3,14 @@ import { Logger } from "@nestjs/common";
 import { parsing } from "./parse/parsing";
 import { toChains, toCodes } from "./parse/parsers";
 import codesData from "./parse/codes";
+import { chainInfo } from "./lib/chain_info";
 
 const chainData = {
-  chain_id: 8017,
-  chain_name: "iSunChain",
-  symbol: "ISC",
-  decimals: 18,
-  rpc: "https://isuncoin.baifa.io/",
+  chain_id: chainInfo.chainId,
+  chain_name: chainInfo.chainName,
+  symbol: chainInfo.symbol,
+  decimals: chainInfo.decimal,
+  rpc: chainInfo.rpc,
 };
 
 class Parser {

@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 export class ReviewService {
   async create(createReviewDto: CreateReviewDto) {
     const data = {
+      chain_id: createReviewDto.chain_id,
       target: createReviewDto.target,
       target_type: createReviewDto.target_type,
       created_timestamp: Math.floor(Date.now() / 1000),
@@ -33,7 +34,7 @@ export class ReviewService {
       },
     });
     // Info: (20240307 - Gibbs) update target address score
-    await prisma.addresses.update({
+    await prisma.addresses.updateMany({
       where: { address: createReviewDto.target },
       data: {
         score: averageStars._avg.stars,

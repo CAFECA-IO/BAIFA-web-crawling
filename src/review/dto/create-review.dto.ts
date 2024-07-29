@@ -25,4 +25,8 @@ export class CreateReviewDto {
   @IsNotEmpty()
   @IsString()
   transaction: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  chain_id: number;
 }

@@ -1,6 +1,7 @@
+import { chainInfo } from "../lib/chain_info";
 import Web3 from "web3";
 
-const web3 = new Web3("https://isuncoin.baifa.io/");
+const web3 = new Web3(chainInfo.rpc);
 const MIN_HEX_LENGTH = 450;
 
 // 解析reportName
