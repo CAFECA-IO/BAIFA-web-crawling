@@ -107,16 +107,19 @@ async function BlockToBalanceVersions(parsedBlock: any) {
     updatedSnapshot = lastSnapshot + reward;
     updatedSnapshot = updatedSnapshot.toString();
   }
-  await prisma.balance_versions.create({
-    data: {
-      chain_id: parsedBlock.chain_id,
-      created_timestamp: parsedBlock.created_timestamp,
-      address: parsedBlock.miner,
-      modify: parsedBlock.reward,
-      currency: "0x0000000000000000000000000000000000000000",
-      snapshot: updatedSnapshot,
-    },
-  });
+  // avoid first block (address 0x00..0) calculated in balance_versions table
+  if (parsedBlock.created_timestamp !== 0) {
+    await prisma.balance_versions.create({
+      data: {
+        chain_id: parsedBlock.chain_id,
+        created_timestamp: parsedBlock.created_timestamp,
+        address: parsedBlock.miner,
+        modify: parsedBlock.reward,
+        currency: "0x0000000000000000000000000000000000000000",
+        snapshot: updatedSnapshot,
+      },
+    });
+  }
   // Deprecated: check parse to balance_versions table success (20240206 - Gibbs)
   // eslint-disable-next-line no-console
   console.log("parse to balance_versions table success");
@@ -1370,18 +1373,21 @@ async function updateTotalAmount(parsedBlock: any) {
         chain_id: parsedBlock.chain_id,
       },
     });
-    const totalAmount = (
-      BigInt(originalCurrency.total_amount) + BigInt(10 ** 18)
-    ).toString();
-    await prisma.currencies.updateMany({
-      where: {
-        address: "0x0000000000000000000000000000000000000000",
-        chain_id: parsedBlock.chain_id,
-      },
-      data: {
-        total_amount: totalAmount,
-      },
-    });
+    // avoid 0x00...0
+    if (parsedBlock.created_timestamp !== 0) {
+      const totalAmount = (
+        BigInt(originalCurrency.total_amount) + BigInt(10 ** 18)
+      ).toString();
+      await prisma.currencies.updateMany({
+        where: {
+          address: "0x0000000000000000000000000000000000000000",
+          chain_id: parsedBlock.chain_id,
+        },
+        data: {
+          total_amount: totalAmount,
+        },
+      });
+    }
   }
 }
 
