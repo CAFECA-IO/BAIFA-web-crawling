@@ -37,6 +37,7 @@ class Parser {
       // Deprecated: check parser error (20240118 - Gibbs)
       // eslint-disable-next-line no-console
       console.log("Parser error:", error);
+      throw error;
     }
   }
 
