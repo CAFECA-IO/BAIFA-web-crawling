@@ -5,6 +5,7 @@ import Parser from "./parser";
 import { config } from "dotenv";
 import { schedulePutReport } from "./parse/crawl_report";
 import { scheduleCalculateHolderVolume } from "./parse/volume_holder";
+import prisma from "./client";
 
 if (process.env.NODE_ENV !== "production") {
   config();
@@ -26,4 +27,6 @@ async function bootstrap() {
   Promise.all([scheduleCalculateHolderVolume()]);
 }
 
-bootstrap();
+bootstrap().finally(() => {
+  prisma.$disconnect();
+});
