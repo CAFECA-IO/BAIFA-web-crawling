@@ -1,11 +1,13 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import { chainInfo } from "../lib/chain_info";
+import prisma from "../client";
 import {
   getTransactionReceiptAndSave,
   getNumberOfTransactionReceiptsOfBlock,
   updateTransactionReceiptFinished,
 } from "./receipts";
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 async function crawlTransactionAndReceipt(web3: any, blockNumber: number) {
   // Deprecated: print crawlTransaction blockNumber (20231225 - Gibbs)
@@ -34,11 +36,11 @@ async function getAndSaveTransactionAndReceiptData(
   const block = await web3.eth.getBlock(blockNumber);
   // Deprecated: print block (20231225 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("block:", block);
+  // console.log("block:", block);
   const transactions = block.transactions;
   // Deprecated: print all transactions hash of the block (20231225 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("transactions:", transactions);
+  // console.log("transactions:", transactions);
   // save transactions
   if (transactions?.length > 0) {
     for (let i = 0; i < transactions.length; i++) {
@@ -73,8 +75,8 @@ async function getAndSaveTransactionAndReceiptData(
 }
 
 async function getTransactionInfo(blockNumber: number) {
-  const transactionInfo = await prisma.block_raw.findUnique({
-    where: { number: blockNumber },
+  const transactionInfo = await prisma.block_raw.findFirst({
+    where: { number: blockNumber, chain_id: chainInfo.chainId },
     select: {
       transaction_finished: true,
       transaction_count: true,
@@ -83,7 +85,7 @@ async function getTransactionInfo(blockNumber: number) {
   });
   // Deprecated: print transactionInfo of the block in db (20231225 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("transactionInfo:", transactionInfo);
+  // console.log("transactionInfo:", transactionInfo);
   return transactionInfo;
 }
 
@@ -91,10 +93,11 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
   const transaction = await web3.eth.getTransaction(transactionHash);
   // Deprecated: print one transaction data by hash (20231225 - Gibbs)
   // eslint-disable-next-line no-console
-  console.log("transaction:", transaction);
+  // console.log("transaction:", transaction);
   // check if the transaction hash exists in the database
+  const chain_id = chainInfo.chainId.toString();
   const existingTransaction = await prisma.transaction_raw.findUnique({
-    where: { hash: transactionHash },
+    where: { hash: transactionHash, chain_id: chain_id },
   });
   if (!existingTransaction) {
     // use prisma client to store raw data
@@ -113,15 +116,16 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
       v: transaction.v.toString(),
       r: transaction.r.toString(),
       s: transaction.s.toString(),
-      max_fee_per_gas: transaction.maxFeePerGas.toString(),
-      max_priority_fee_per_gas: transaction.maxPriorityFeePerGas.toString(),
+      max_fee_per_gas: transaction.maxFeePerGas?.toString() || "null",
+      max_priority_fee_per_gas:
+        transaction.maxPriorityFeePerGas?.toString() || "null",
       type: transaction.type.toString(),
-      access_list: transaction.accessList.toString() || "",
+      access_list: transaction.accessList ? transaction.accessList : "null",
       chain_id: transaction.chainId.toString(),
     };
     // Deprecated: print need-to-save transaction (20231225 - Gibbs)
     // eslint-disable-next-line no-console
-    console.log("data:", data);
+    // console.log("data:", data);
     // save transaction
     await prisma.transaction_raw.create({
       data,
@@ -133,8 +137,9 @@ async function getOneTransactionAndSave(web3: any, transactionHash: string) {
 }
 
 async function getNumberOfTransactions(blockNumber: number) {
+  const chain_id = chainInfo.chainId.toString();
   const numberOfTransactionsOfBlock = await prisma.transaction_raw.count({
-    where: { block_number: blockNumber },
+    where: { block_number: blockNumber, chain_id: chain_id },
   });
   // Deprecated: print numberOfTransactionsOfBlock (20231225 - Gibbs)
   // eslint-disable-next-line no-console
@@ -144,8 +149,8 @@ async function getNumberOfTransactions(blockNumber: number) {
 
 async function updateTransactionFinished(blockNumber: number) {
   try {
-    await prisma.block_raw.update({
-      where: { number: blockNumber },
+    await prisma.block_raw.updateMany({
+      where: { number: blockNumber, chain_id: chainInfo.chainId },
       data: { transaction_finished: true },
     });
     // Deprecated:  check update transaction_finished (20231225 - Gibbs)
